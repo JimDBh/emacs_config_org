@@ -11,7 +11,7 @@ available at [[https://github.com/andreyorst/dotfiles][Github]].
 
 * early-init.el
 :properties:
-:header-args+: :tangle "./early-init.el"
+:header-args: :tangle "./early-init.el"
 :end:
 
 Early-init.el was introduced since emacs 27. Most configurations
@@ -86,7 +86,7 @@ Do not load package.el since we are not using it.
 
 * init.el
 :properties:
-:header-args+: :tangle "./init.el"
+:header-args: :tangle "./init.el"
 :end:
 
 Init.el should be placed in =user-emacs-directory=. By default it's
