@@ -1,0 +1,128 @@
+#+title: My Emacs Config
+#+author: Bohan Li
+#+email: jim.jd.davis@gmail.com
+#+property: header-args :results silent
+
+* About this file
+This org file contains my emacs configurations. Once tangled it "compiles" into
+init.el (and possibly early-init.el, depending on the emacs version), which can
+be used by emacs at startup. Parts of the file are inspired by Andrey's dotfile
+available at [[https://github.com/andreyorst/dotfiles][Github]]. 
+
+* early-init.el
+:properties:
+:header-args+: :tangle "./early-init.el"
+:end:
+
+Early-init.el was introduced since emacs 27. Most configurations
+should still belong to init.el, but this makes it possible to change
+things at a very early stage, sometimes quite helpful.
+
+** header
+#+BEGIN_SRC elisp
+  ;;; early-init.el --- Early configs -*- lexical-binding: t; buffer-read-only:t -*-
+  ;;;
+  ;;; Commentary:
+  ;;; This file is auto-generated from an org file. Please do not change this file directly.
+  ;;;
+  ;;; Code:
+#+END_SRC
+
+** Speed tweaks
+Tweak garbage collection and also other things for a better
+performance. This may need to be changed if on a relatively
+resource-contraint machine.
+
+#+BEGIN_SRC elisp
+  (setq gc-cons-threshold 200000000)
+  (setq read-process-output-max (* 2048 2048))
+#+END_SRC
+
+** Package utilities
+*** Straight.el
+Straight.el helps managing packages in a very convenient yet
+consistent way. Bootstrap it so we can use it later to require
+packages. 
+
+We are using the develop branch of the straight repo. Also by default
+use straight with use-package.
+#+BEGIN_SRC elisp
+  (defvar straight-repository-branch "develop")
+  (defvar bootstrap-version)
+  (let ((bootstrap-file
+	 (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+	(bootstrap-version 5))
+    (unless (file-exists-p bootstrap-file)
+      (with-current-buffer
+	  (url-retrieve-synchronously
+	   "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+	   'silent 'inhibit-cookies)
+	(goto-char (point-max))
+	(eval-print-last-sexp)))
+    (load bootstrap-file nil 'nomessage))
+
+  (setq straight-use-package-by-default t)
+#+END_SRC
+
+*** Use-package.el
+Use use-package for much easier package configuration with autoloading.
+
+#+BEGIN_SRC elisp
+  (straight-use-package 'use-package)
+  (setq use-package-verbose nil)
+#+END_SRC
+
+*** Others
+Do not load package.el since we are not using it.
+#+BEGIN_SRC elisp
+  (setq package-enable-at-startup nil)
+#+END_SRC
+
+** Provide =early-init.el=
+#+BEGIN_SRC elisp
+  (provide 'early-init)
+  ;;; early-init.el ends here
+#+END_SRC
+
+* init.el
+:properties:
+:header-args+: :tangle "./init.el"
+:end:
+
+Init.el should be placed in =user-emacs-directory=. By default it's
+in =~/.emacs.d/=. 
+
+** header
+#+BEGIN_SRC elisp
+  ;;; init.el --- My emacs configs -*- lexical-binding: t; buffer-read-only:t -*-
+  ;;;
+  ;;; Commentary:
+  ;;; This file is auto-generated from an org file. Please do not change this file directly.
+  ;;;
+  ;;; Code:
+#+END_SRC
+
+** Default files
+Load =early-init.el= manually if it is not supported by this version of emacs.
+#+BEGIN_SRC elisp
+  (unless (featurep 'early-init)
+    (let ((early-init-file (expand-file-name "early-init.el" user-emacs-directory)))
+      (when (file-exists-p early-init-file) (load early-init-file))))
+#+END_SRC 
+
+Define a separate file for customized variables. Create the file if it
+does not exist. However we are not loading the file, such that if
+anything is deleted in =init.el=, the saved customized values would
+not interfere. 
+
+*** TODO *NEEDS TESTING*
+#+BEGIN_SRC elisp
+  (defconst custom-file (expand-file-name "autogen-cus.el" user-emacs-directory))
+  (unless (file-exists-p custom-file) (write-region "" nil custom-file))
+#+END_SRC
+
+** Provide =init.el=
+#+BEGIN_SRC elisp
+  (provide 'init)
+  ;;; init.el ends here
+#+END_SRC
