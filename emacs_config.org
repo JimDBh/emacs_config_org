@@ -111,11 +111,11 @@ Load =early-init.el= manually if it is not supported by this version of emacs.
 #+END_SRC 
 
 Define a separate file for customized variables. Create the file if it
-does not exist. However we are not loading the file, such that if
-anything is deleted in =init.el=, the saved customized values would
-not interfere. 
+does not exist. However we are not loading the file since I do not use
+the customize interface, but use this file to do configuration. Also,
+if anything is deleted in =init.el=, the saved customized values would
+not interfere.
 
-*** TODO *NEEDS TESTING*
 #+BEGIN_SRC elisp
   (defconst custom-file (expand-file-name "autogen-cus.el" user-emacs-directory))
   (unless (file-exists-p custom-file) (write-region "" nil custom-file))
