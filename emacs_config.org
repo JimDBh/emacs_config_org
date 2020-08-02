@@ -3,7 +3,32 @@
 #+email: jim.jd.davis@gmail.com
 #+property: header-args :results silent
 
-* About this file
+#+OPTIONS: toc:nil
+
+* Table of Contents                                                     :TOC:
+- [[#about][About]]
+- [[#early-initel][early-init.el]]
+  - [[#header][Header]]
+  - [[#speed-tweaks][Speed tweaks]]
+  - [[#package-utilities][Package utilities]]
+  - [[#early-tweaks-on-appearance][Early tweaks on appearance]]
+  - [[#provide-early-initel][Provide =early-init.el=]]
+- [[#initel][init.el]]
+  - [[#header-1][Header]]
+  - [[#general-settings][General Settings]]
+  - [[#appearance][Appearance]]
+  - [[#ivy-setup][Ivy Setup]]
+  - [[#projects][Projects]]
+  - [[#version-control][Version Control]]
+  - [[#editing][Editing]]
+  - [[#org-mode][Org-mode]]
+  - [[#terminalshell][Terminal/Shell]]
+  - [[#tty-emacs-specific][TTY Emacs Specific]]
+  - [[#bufferwindow-management][Buffer/Window Management]]
+  - [[#miscellaneous-packages][Miscellaneous Packages]]
+  - [[#provide-initel][Provide =init.el=]]
+
+* About
 This org file contains my emacs configurations. Once tangled it "compiles" into
 init.el (and possibly early-init.el, depending on the emacs version), which can
 be used by emacs at startup. Parts of the file are inspired by Andrey's dotfile
@@ -344,6 +369,16 @@ Customize magit a bit to my liking.
     (magithub-feature-autoinject t))
 #+END_SRC
 ** Editing
+** Org-mode
+I am quite new to org mode, but there are some things already quite useful.
+*** TOC
+Auto insert a TOC when saving. Very helpful for github org files. 
+#+BEGIN_SRC elisp
+  (use-package toc-org
+    :hook
+    (org-mode . toc-org-mode))
+#+END_SRC
+
 ** Terminal/Shell
 =vterm= emulates the terminal well and enables many emacs key-bindings
 as a buffer.
