@@ -26,6 +26,7 @@
   - [[#tty-emacs-specific][TTY Emacs Specific]]
   - [[#bufferwindow-management][Buffer/Window Management]]
   - [[#miscellaneous-packages][Miscellaneous Packages]]
+  - [[#final-touch][Final Touch]]
   - [[#provide-initel][Provide =init.el=]]
 
 * About
@@ -60,7 +61,7 @@ performance. This may need to be changed if on a relatively
 resource-contraint machine.
 
 #+BEGIN_SRC elisp
-  (setq gc-cons-threshold 200000000)
+  (setq gc-cons-threshold 500000000)
   (setq read-process-output-max (* 2048 2048))
 #+END_SRC
 
@@ -477,6 +478,11 @@ Displays the key bindings after a prefix.
   (use-package which-key
     :config
     (which-key-mode t))
+#+END_SRC
+** Final Touch
+Set gc thres back to normal.
+#+BEGIN_SRC elisp
+    (setq gc-cons-threshold 50000000)
 #+END_SRC
 ** Provide =init.el=
 #+BEGIN_SRC elisp
