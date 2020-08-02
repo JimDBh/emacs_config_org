@@ -78,6 +78,14 @@ Do not load package.el since we are not using it.
   (setq package-enable-at-startup nil)
 #+END_SRC
 
+** Early tweaks on appearance
+No menu, tool, scroll bars, please. 
+#+BEGIN_SRC elisp
+  (tool-bar-mode -1)
+  (menu-bar-mode -1)
+  (scroll-bar-mode -1)
+#+END_SRC
+
 ** Provide =early-init.el=
 #+BEGIN_SRC elisp
   (provide 'early-init)
@@ -140,6 +148,41 @@ The default scroll amount is too fast for me.
   (setq mouse-wheel-scroll-amount
 	'(3 ((shift) . 1) ((meta)) ((control) . text-scale))
 	mouse-wheel-progressive-speed nil)
+#+END_SRC
+
+Resize by pixels. 
+#+BEGIN_SRC elisp
+  (setq frame-resize-pixelwise t)
+#+END_SRC
+
+** Appearance
+Set up theme, modeline, tab-bar, etc. I usually set them up before
+other packages, since some packages do not play nice with themes and
+may get reset if a theme is loaded after the package is initialized.
+
+*** All the icons
+Use icons in emacs for a better look. 
+#+BEGIN_SRC elisp
+  (use-package all-the-icons)
+#+END_SRC
+
+*** Themes
+I quite like doom themes since they provide a modern look to emacs. 
+#+BEGIN_SRC elisp
+  (use-package doom-themes
+    :config
+    (load-theme 'doom-one t))
+#+END_SRC
+
+*** Mode-line
+Currently using telephone-line. I also liked doom-mode-line but it had
+some bugs in updating the mode-line contents when I tested it.
+#+BEGIN_SRC elisp
+  (use-package telephone-line
+    :custom
+    ((telephone-line-height 22))
+    :config
+    (telephone-line-mode))
 #+END_SRC
 
 ** Ivy Setup 
@@ -217,10 +260,9 @@ Show xref results in ivy. Needs different set-up for older emacs.
 #+END_SRC
 
 ** Projects
+*** Projectile
 Use projectile to manage projects in emacs. Maybe will consider using
-=project.el= later.
-
-*** Basic projectile
+=project.el= later. 
 #+BEGIN_SRC elisp
   (use-package projectile
     :bind-keymap
@@ -229,7 +271,7 @@ Use projectile to manage projects in emacs. Maybe will consider using
     (projectile-mode))
 #+END_SRC
 
-*** Projectile with ivy
+**** Projectile with ivy
 #+BEGIN_SRC elisp
   (use-package counsel-projectile
     :if (featurep 'counsel)
@@ -244,10 +286,38 @@ Ripgrep is very fast and convenient when searching in a project.
     :defer t)
 #+END_SRC
 
+*** Treemacs
+Side bar to navigate files in a project. Quite helpful at times, and
+looks modern.  It might conflict with other window management
+packages, so need to be careful in config.
+
+Also, if using telephone line, need to add a separator so it can
+adjust treemacs modeline height.
+#+BEGIN_SRC elisp
+  (use-package treemacs
+    :demand
+    :bind
+    ("C-x 1" . treemacs-delete-other-windows)
+    :custom
+    ((treemacs-width 34)
+     (treemacs-no-delete-other-windows nil))
+    :custom-face
+    (treemacs-root-face ((t (:inherit font-lock-string-face :weight bold :height 1.1))))
+    :config
+    (when (featurep 'telephone-line)
+      (setq treemacs-user-mode-line-format
+	    '((:eval
+	       (telephone-line-separator-render telephone-line-abs-left
+						(telephone-line-face-map 'nil)
+						(telephone-line-face-map 'accent)))
+	      "Treemacs")))
+    (treemacs-resize-icons 20))
+#+END_SRC
+
 ** Version Control
 Use magit for version control (of course). 
 
-*** =transient.el=
+*** Transient
 Required by magit. 
 #+BEGIN_SRC elisp
   (use-package transient)
@@ -273,7 +343,7 @@ Customize magit a bit to my liking.
     :config
     (magithub-feature-autoinject t))
 #+END_SRC
-** Spell check
+** Editing
 ** Terminal/Shell
 =vterm= emulates the terminal well and enables many emacs key-bindings
 as a buffer.
