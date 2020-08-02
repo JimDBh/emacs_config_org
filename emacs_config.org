@@ -9,6 +9,7 @@ init.el (and possibly early-init.el, depending on the emacs version), which can
 be used by emacs at startup. Parts of the file are inspired by Andrey's dotfile
 available at [[https://github.com/andreyorst/dotfiles][Github]]. 
 
+
 * early-init.el
 :properties:
 :header-args: :tangle "./early-init.el"
@@ -18,7 +19,7 @@ Early-init.el was introduced since emacs 27. Most configurations
 should still belong to init.el, but this makes it possible to change
 things at a very early stage, sometimes quite helpful.
 
-** header
+** Header
 #+BEGIN_SRC elisp
   ;;; early-init.el --- Early configs -*- lexical-binding: t; buffer-read-only:t -*-
   ;;;
@@ -60,8 +61,6 @@ use straight with use-package.
 	(goto-char (point-max))
 	(eval-print-last-sexp)))
     (load bootstrap-file nil 'nomessage))
-
-  (setq straight-use-package-by-default t)
 #+END_SRC
 
 *** Use-package.el
@@ -70,6 +69,7 @@ Use use-package for much easier package configuration with autoloading.
 #+BEGIN_SRC elisp
   (straight-use-package 'use-package)
   (setq use-package-verbose nil)
+  (setq straight-use-package-by-default t)
 #+END_SRC
 
 *** Others
@@ -84,6 +84,7 @@ Do not load package.el since we are not using it.
   ;;; early-init.el ends here
 #+END_SRC
 
+
 * init.el
 :properties:
 :header-args: :tangle "./init.el"
@@ -92,7 +93,7 @@ Do not load package.el since we are not using it.
 Init.el should be placed in =user-emacs-directory=. By default it's
 in =~/.emacs.d/=. 
 
-** header
+** Header
 #+BEGIN_SRC elisp
   ;;; init.el --- My emacs configs -*- lexical-binding: t; buffer-read-only:t -*-
   ;;;
@@ -102,25 +103,236 @@ in =~/.emacs.d/=.
   ;;; Code:
 #+END_SRC
 
-** Default files
-Load =early-init.el= manually if it is not supported by this version of emacs.
-#+BEGIN_SRC elisp
-  (unless (featurep 'early-init)
-    (let ((early-init-file (expand-file-name "early-init.el" user-emacs-directory)))
-      (when (file-exists-p early-init-file) (load early-init-file))))
-#+END_SRC 
+** General Settings
+*** Default files
+ Load =early-init.el= manually if it is not supported by this version of emacs.
+ #+BEGIN_SRC elisp
+   (unless (featurep 'early-init)
+     (let ((early-init-file (expand-file-name "early-init.el" user-emacs-directory)))
+       (when (file-exists-p early-init-file) (load early-init-file))))
+ #+END_SRC 
 
-Define a separate file for customized variables. Create the file if it
-does not exist. However we are not loading the file since I do not use
-the customize interface, but use this file to do configuration. Also,
-if anything is deleted in =init.el=, the saved customized values would
-not interfere.
+ Define a separate file for customized variables. Create the file if it
+ does not exist. However we are not loading the file since I do not use
+ the customize interface, but use this file to do configuration. Also,
+ if anything is deleted in =init.el=, the saved customized values would
+ not interfere.
 
+ #+BEGIN_SRC elisp
+   (defconst custom-file (expand-file-name "autogen-cus.el" user-emacs-directory))
+   (unless (file-exists-p custom-file) (write-region "" nil custom-file))
+ #+END_SRC
+
+*** History saving
+Save command and buffer history across sessions. 
 #+BEGIN_SRC elisp
-  (defconst custom-file (expand-file-name "autogen-cus.el" user-emacs-directory))
-  (unless (file-exists-p custom-file) (write-region "" nil custom-file))
+  (savehist-mode t)
 #+END_SRC
 
+*** Others
+Set recenter positions so we can see a portion of the previous/next page.
+#+BEGIN_SRC elisp
+  (setq recenter-positions '(middle 0.15 0.85))
+#+END_SRC
+
+The default scroll amount is too fast for me. 
+#+BEGIN_SRC elisp
+  (setq mouse-wheel-scroll-amount
+	'(3 ((shift) . 1) ((meta)) ((control) . text-scale))
+	mouse-wheel-progressive-speed nil)
+#+END_SRC
+
+** Ivy Setup 
+Ivy (together with counsel, swiper) makes completion quick and easy.
+
+*** Basic ivy
+#+BEGIN_SRC elisp
+  (use-package ivy
+    :bind
+    (("C-c v" . ivy-push-view)
+     ("C-c V" . ivy-pop-view)
+     ("C-c C-r" . ivy-resume))
+    :custom
+    ((ivy-use-virtual-buffers t)
+     (ivy-count-format "%d/%d")
+     (ivy-wrap t)
+     (ivy-height 10))
+    :config
+    (ivy-mode 1))
+#+END_SRC
+*** Counsel
+Counsel provides various extended functions using ivy completion.
+=counsel-mode= binds various shortcuts. 
+#+BEGIN_SRC elisp
+  (use-package counsel
+    :demand
+    :bind
+    ("C-c k" . counsel-rg)
+    :config
+    (counsel-mode))
+#+END_SRC
+*** Swiper
+Swiper should be installed already with ivy. Use it for searching. 
+#+BEGIN_SRC elisp
+  (use-package swiper
+    :bind
+    ("C-s" . swiper-isearch))
+#+END_SRC
+*** Enhancements
+Various packages that enhance ivy.
+ 
+=ivy-rich= displays more info in ivy. 
+#+BEGIN_SRC elisp
+  (use-package ivy-rich
+    :config
+    (ivy-rich-mode 1))
+#+END_SRC
+
+=smex= shows the most recent command in M-x. Specify where it saves
+the history. This could be helpful if we have multiple emacs profiles.
+#+BEGIN_SRC elisp
+  (use-package smex
+    :custom
+    (smex-save-file (expand-file-name "smex-hist.el" user-emacs-directory))
+    :config
+    (smex-initialize))
+#+END_SRC
+
+Use =C-o= to use hydra with ivy
+#+BEGIN_SRC elisp
+  (use-package ivy-hydra)
+#+END_SRC
+
+Show xref results in ivy. Needs different set-up for older emacs. 
+#+BEGIN_SRC elisp
+  (use-package ivy-xref
+    :if (>= emacs-major-version 27)
+    :custom
+    (xref-show-definitions-function #'ivy-xref-show-defs))
+  
+  (use-package ivy-xref
+    :if (< emacs-major-version 27)
+    :custom
+    (xref-show-definitions-function #'ivy-xref-show-xrefs))
+#+END_SRC
+
+** Projects
+Use projectile to manage projects in emacs. Maybe will consider using
+=project.el= later.
+
+*** Basic projectile
+#+BEGIN_SRC elisp
+  (use-package projectile
+    :bind-keymap
+    ("C-c p" . projectile-command-map)
+    :config
+    (projectile-mode))
+#+END_SRC
+
+*** Projectile with ivy
+#+BEGIN_SRC elisp
+  (use-package counsel-projectile
+    :if (featurep 'counsel)
+    :config
+    (counsel-projectile-mode t))
+#+END_SRC
+
+*** Ripgrep
+Ripgrep is very fast and convenient when searching in a project. 
+#+BEGIN_SRC elisp
+  (use-package rg
+    :defer t)
+#+END_SRC
+
+** Version Control
+Use magit for version control (of course). 
+
+*** =transient.el=
+Required by magit. 
+#+BEGIN_SRC elisp
+  (use-package transient)
+#+END_SRC
+
+*** Magit
+Customize magit a bit to my liking.
+#+BEGIN_SRC elisp
+  (use-package magit
+    :demand
+    :bind
+    ("C-x g" . magit-status)
+    :custom
+    ((ediff-diff-options "-w")
+     (ediff-split-window-function #'split-window-horizontally)
+     (ediff-window-setup-function #'ediff-setup-windows-plain)
+     (magit-display-buffer-function #'magit-display-buffer-fullcolumn-most-v1)))
+#+END_SRC
+
+*** Magithub
+#+BEGIN_SRC elisp
+  (use-package magithub
+    :config
+    (magithub-feature-autoinject t))
+#+END_SRC
+** Spell check
+** Terminal/Shell
+=vterm= emulates the terminal well and enables many emacs key-bindings
+as a buffer.
+#+BEGIN_SRC elisp
+  (use-package vterm
+    :if module-file-suffix
+    :custom
+    (vterm-kill-buffer-on-exit t))
+#+END_SRC
+
+** TTY Emacs Specific
+*** Mouse
+In TTY emacs, I still want to use mouse sometimes.
+#+BEGIN_SRC elisp
+  (unless window-system
+    (xterm-mouse-mode t)
+    (setq mouse-sel-mode t
+	  xterm-set-window-title t))
+
+#+END_SRC
+*** Clipetty
+=clipetty= helps transfering the paste board from a tty emacs to a
+remote client.
+#+BEGIN_SRC elisp
+  (use-package clipetty
+    :bind
+    ("M-w" . clipetty-kill-ring-save))
+#+END_SRC
+** Buffer/Window Management
+*** =ace-window=
+Jumping among windows. 
+#+BEGIN_SRC elisp
+  (use-package ace-window
+    :bind
+    ("M-o" . ace-window))
+#+END_SRC
+*** Window movements
+Use Shift + arrows to move among windows. 
+#+BEGIN_SRC elisp
+  (windmove-default-keybindings)
+#+END_SRC
+*** Side windows
+I'd like some kinds of buffers to show up in pop-up side-windows. 
+=popwin.el= does this in a simple fashion.
+#+BEGIN_SRC elisp
+  (use-package popwin
+    :config
+    (push '(" *undo=tree*" :width 0.3 :position right)
+	  popwin:special-display-config)
+    (popwin-mode t))
+#+END_SRC
+** Miscellaneous Packages
+*** Which-key mode
+Displays the key bindings after a prefix. 
+#+BEGIN_SRC elisp
+  (use-package which-key
+    :config
+    (which-key-mode t))
+#+END_SRC
 ** Provide =init.el=
 #+BEGIN_SRC elisp
   (provide 'init)

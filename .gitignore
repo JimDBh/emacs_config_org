@@ -1,0 +1,13 @@
+/auto-save-list/
+*~
+/autogen-cus.el
+/early-init.el
+/history
+/init.el
+/magithub/
+/projectile-bookmarks.eld
+/recentf
+/smex-hist.el
+/straight/
+/transient/
+/url/
