@@ -386,14 +386,54 @@ Use Shift + arrows to move among windows.
   (windmove-default-keybindings)
 #+END_SRC
 *** Side windows
-I'd like some kinds of buffers to show up in pop-up side-windows. 
-=popwin.el= does this in a simple fashion.
+Define the rules for side windows.
+
+Do not preserve height for top/bottom, and width for left/right.
 #+BEGIN_SRC elisp
-  (use-package popwin
-    :config
-    (push '(" *undo=tree*" :width 0.3 :position right)
-	  popwin:special-display-config)
-    (popwin-mode t))
+  (defvar jd--par-sidewin-top-bot
+    '(preserve-size . (nil . nil)))
+
+  (defvar jd--par-sidewin-left-right
+    '(preserve-size . (nil . nil)))
+#+END_SRC
+
+Allow fit window to buffer horizontally. Also resize pixelwise.
+#+BEGIN_SRC elisp
+  (setq fit-window-to-buffer-horizontally t)
+  (setq window-resize-pixelwise t)
+#+END_SRC
+
+Define the function to fit buffer width with constraints. 
+#+BEGIN_SRC elisp
+  (defcustom jd--fit-width-min-ratio 0.2 "Minimum width of a window to fit to buffer.")
+  (defcustom jd--fit-width-max-ratio 0.5 "Maximum width of a window to fit to buffer.")
+
+  (defun jd:fit-window-to-buffer-ratio (&optional window)
+    "Fit WINDOW to buffer with ratio constraints."
+    (let ((min-width (ceiling (* (frame-width) jd--fit-width-min-ratio)))
+	  (max-width (floor (* (frame-width) jd--fit-width-max-ratio))))
+      (fit-window-to-buffer window nil nil max-width min-width nil)))
+#+END_SRC
+
+Define the variable to determine width with a fixed ratio. (Currently not used).
+#+BEGIN_SRC elisp
+  (defcustom jd--fixed-width-ratio 0.4 "Fixed width ratio for sidewindows")
+#+END_SRC
+
+Set =display-buffer-alist= to display certain buffers in side windows. 
+#+BEGIN_SRC elisp
+  (setq display-buffer-alist 
+  `(("\\*\\(.*[hH]elp\\|undo-tree.*\\)\\*" 
+     display-buffer-in-side-window
+     (side . right)
+     (slot . 0)
+     (window-width . jd:fit-window-to-buffer-ratio)
+     jd--par-sidewin-left-right)
+    ("\\*\\(grep\\|Completions\\|compilation\\|Python Check\\)\\*"
+     display-buffer-in-side-window
+     (side . bottom)
+     (slot . 0)
+     jd--par-sidewin-top-bot)))
 #+END_SRC
 ** Miscellaneous Packages
 *** Which-key mode
