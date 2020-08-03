@@ -35,7 +35,6 @@ init.el (and possibly early-init.el, depending on the emacs version), which can
 be used by emacs at startup. Parts of the file are inspired by Andrey's dotfile
 available at [[https://github.com/andreyorst/dotfiles][Github]]. 
 
-
 * early-init.el
 :properties:
 :header-args: :tangle "./early-init.el"
@@ -117,7 +116,6 @@ No menu, tool, scroll bars, please.
   (provide 'early-init)
   ;;; early-init.el ends here
 #+END_SRC
-
 
 * init.el
 :properties:
@@ -370,6 +368,40 @@ Customize magit a bit to my liking.
     (magithub-feature-autoinject t))
 #+END_SRC
 ** Editing
+*** Company
+Complete anything!
+
+In gud-mode, we don't want company to auto show up, since it makes
+things super laggy. Define a function to disable it.
+#+BEGIN_SRC elisp
+  (defun jd:disable-company-idle-delay ()
+    (make-variable-buffer-local 'company-idle-delay)
+    (setq company-idle-delay nil))
+#+END_SRC
+
+#+BEGIN_SRC elisp
+  (use-package company
+    :demand
+    :custom
+    ((company-idle-delay 0.2)
+     (company-show-numbers t)
+     (company-minimum-prefix-length 2)
+     (company-tooltip-align-annotations t)
+     (company-tooltip-maximum-width 300))
+    :bind
+    (("C-M-i" . company-complete)
+     ("C-<tab>" . company-complete)
+     :map company-active-map
+     ("C-n" . company-select-next)
+     ("C-p" . company-select-previous))
+    :hook
+    ((after-init . global-company-mode)
+     (gud-mode . jd:disable-company-idle-delay))
+    :config
+    (dotimes (i 10)
+      (define-key company-active-map (kbd (format "C-%d" i)) 'company-complete-number)))
+#+END_SRC
+
 ** Org-mode
 I am quite new to org mode, but there are some things already quite useful.
 *** TOC
@@ -408,6 +440,14 @@ remote client.
     :bind
     ("M-w" . clipetty-kill-ring-save))
 #+END_SRC
+*** Keys
+For company mode, we need =C-0= to =C-9=, but their codes are not
+defined in the keymap.
+#+BEGIN_SRC elisp
+  (dotimes (i 10)
+    (define-key input-decode-map (format "\e[%d;5u" (+ i 48)) (kbd (format "C-%d" i))))
+#+END_SRC
+
 ** Buffer/Window Management
 *** =ace-window=
 Jumping among windows. 
@@ -474,18 +514,23 @@ Set =display-buffer-alist= to display certain buffers in side windows.
 ** Miscellaneous Packages
 *** Which-key mode
 Displays the key bindings after a prefix. 
+
 #+BEGIN_SRC elisp
   (use-package which-key
     :config
     (which-key-mode t))
 #+END_SRC
+
 ** Final Touch
 Set gc thres back to normal.
 #+BEGIN_SRC elisp
     (setq gc-cons-threshold 50000000)
 #+END_SRC
+
 ** Provide =init.el=
+
 #+BEGIN_SRC elisp
   (provide 'init)
   ;;; init.el ends here
 #+END_SRC
+
