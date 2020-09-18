@@ -144,15 +144,14 @@
 	  (when (file-exists-p early-init-file) (load early-init-file))))
     #+end_src 
 
-    Define a separate file for customized variables. Create the file if it
-    does not exist. However we are not loading the file since I do not use
-    the customize interface, but use this file to do configuration. Also,
-    if anything is deleted in =init.el=, the saved customized values would
-    not interfere.
+    Define a separate file for customized variables. Create the file if it does
+    not exist.  If anything is deleted in =init.el=, the saved customized values
+    would persist still. This is not great. Need to find a new way.
 
     #+begin_src elisp
       (defconst custom-file (expand-file-name "autogen-cus.el" user-emacs-directory))
       (unless (file-exists-p custom-file) (write-region "" nil custom-file))
+      (load custom-file)
     #+end_src
 
 *** History saving
@@ -659,6 +658,11 @@
 	(advice-add 'xref-push-marker-stack :before #'jd:xref-clear-fwd-marker-ring))
     #+end_src
 
+*** Flycheck
+    #+begin_src elisp
+      (use-package flycheck)
+    #+end_src
+    
 *** LSP mode
     The language server protocol is very helpful in making Emacs a modern
     programming editor. =lsp-mode= is very helpful in this. I also wanted to try
