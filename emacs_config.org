@@ -60,7 +60,7 @@
    resource-constraint machine.
 
    #+begin_src elisp
-     (setq gc-cons-threshold 500000000)
+     (setq gc-cons-threshold (* 50 1024 1024))
      (setq read-process-output-max (* 2048 2048))
    #+end_src
 
@@ -179,6 +179,11 @@
       (setq frame-resize-pixelwise t)
     #+end_src
 
+    Allow following symbolic links.
+    #+begin_src elisp
+      (setq vc-follow-symlinks t)
+    #+end_src
+
 ** Appearance
    Set up theme, mode-line, tab-bar, etc. I usually set them up before
    other packages, since some packages do not play nice with themes and
@@ -213,6 +218,8 @@
     Use Centaur tabs. It has a modern look, but sometimes does not play
     that well with other packages. Need to be careful.
 
+    This is currently disabled since I just feel tabs may not be that useful after all. 
+
     Define a function to check if centaur tabs mode is active, if we want
     to call the function =centaur-tabs-local-mode=, since it will fail if
     not in centaur tabs mode.
@@ -225,7 +232,8 @@
 
     #+begin_src elisp
       (use-package centaur-tabs
-	:demand
+	:defer t
+	:commands (centaur-tabs-mode centaur-tabs-local-mode)
 	:custom
 	((centaur-tabs-height 24)
 	 (centaur-tabs-set-bar 'left))
@@ -250,13 +258,14 @@
 	     "Term/Shell")
 	    ((memq major-mode '(org-mode org-agenda-mode diary-mode))
 	     "OrgMode")
-	    ((memq major-mode '(magit-process-mode
-				magit-status-mode
-				magit-diff-mode
-				magit-log-mode
-				magit-file-mode
-				magit-blob-mode
-				magit-blame-mode))
+	    ((or (memq major-mode '(magit-process-mode
+				    magit-status-mode
+				    magit-diff-mode
+				    magit-log-mode
+				    magit-file-mode
+				    magit-blob-mode
+				    magit-blame-mode))
+		 (string-equal "COMMIT_EDITMSG" (buffer-name)))
 	     "Magit")
 	    ((string-equal "*" (substring (buffer-name) 0 1))
 	     "Emacs")
@@ -265,8 +274,7 @@
 	(advice-add 'centaur-tabs-buffer-groups :override #'jd:centaur-tabs-buffer-groups)
 	(when (featurep 'all-the-icons)
 	  (setq centaur-tabs-set-icons t))
-	(centaur-tabs-headline-match)
-	(centaur-tabs-mode t))
+	(centaur-tabs-headline-match))
     #+end_src
 
 ** Ivy Setup 
@@ -348,16 +356,13 @@
 	:bind-keymap
 	("C-c p" . projectile-command-map)
 	:config
-	(projectile-mode))
+	(projectile-mode)
+	(use-package counsel-projectile
+	  :if (featurep 'counsel)
+	  :config
+	  (counsel-projectile-mode t))
+	(message "load"))
     #+end_src
-
-**** Projectile with ivy
-     #+begin_src elisp
-       (use-package counsel-projectile
-	 :if (featurep 'counsel)
-	 :config
-	 (counsel-projectile-mode t))
-     #+end_src
 
 *** Ripgrep
     Ripgrep is very fast and convenient when searching in a project. 
@@ -375,12 +380,13 @@
     adjust treemacs mode-line height.
     #+begin_src elisp
       (use-package treemacs
-	:demand
+	:commands treemacs
 	:bind
 	("C-x 1" . treemacs-delete-other-windows)
 	:custom
 	((treemacs-width 34)
-	 (treemacs-no-delete-other-windows nil))
+	 (treemacs-no-delete-other-windows nil)
+	 (treemacs-space-between-root-nodes nil))
 	:custom-face
 	(treemacs-root-face ((t (:inherit font-lock-string-face :weight bold :height 1.1))))
 	:config
@@ -391,14 +397,9 @@
 						    (telephone-line-face-map 'nil)
 						    (telephone-line-face-map 'accent)))
 		  "Treemacs")))
-	(treemacs-resize-icons 20))
+	(treemacs-resize-icons 20)
+	(use-package treemacs-magit))
     #+end_src
-
-**** Treemacs-magit
-     Work with magit on updating file status. 
-     #+begin_src elisp
-       (use-package treemacs-magit)
-     #+end_src
 
 ** Version Control
    Use magit for version control (of course). 
@@ -413,23 +414,29 @@
     Customize magit a bit to my liking.
     #+begin_src elisp
       (use-package magit
-	:demand
+	:defer t
 	:bind
 	("C-x g" . magit-status)
 	:custom
 	((ediff-diff-options "-w")
 	 (ediff-split-window-function #'split-window-horizontally)
 	 (ediff-window-setup-function #'ediff-setup-windows-plain)
-	 (magit-display-buffer-function #'magit-display-buffer-fullcolumn-most-v1)))
+	 (magit-display-buffer-function #'magit-display-buffer-fullcolumn-most-v1))
+	:config
+	(use-package magithub
+	  :config
+	  (magithub-feature-autoinject t)))
     #+end_src
 
-*** Magithub
-    #+begin_src elisp
-      (use-package magithub
-	:config
-	(magithub-feature-autoinject t))
-    #+end_src
 ** Editing
+*** Yasnippet
+    Useful snippets. Also helps with company mode completion.
+#+begin_src elisp
+  (use-package yasnippet
+    :config
+    (yas-global-mode t))
+#+end_src
+    
 *** Company
     Complete anything!
 
@@ -444,11 +451,11 @@
       (use-package company
 	:demand
 	:custom
-	((company-idle-delay 0.2)
+	((company-idle-delay 0.05)
 	 (company-show-numbers t)
 	 (company-minimum-prefix-length 2)
 	 (company-tooltip-align-annotations t)
-	 (company-tooltip-maximum-width 300))
+	 (company-tooltip-maximum-width 120))
 	:bind
 	(("C-M-i" . company-complete)
 	 ("C-<tab>" . company-complete)
@@ -461,6 +468,13 @@
 	:config
 	(dotimes (i 10)
 	  (define-key company-active-map (kbd (format "C-%d" i)) 'company-complete-number)))
+    #+end_src
+
+    Use company box if we are not using TTY Emacs.
+    #+begin_src elisp
+      (use-package company-box
+	:if window-system
+	:hook (company-mode . company-box-mode))
     #+end_src
 
 *** Spell Check
@@ -645,11 +659,136 @@
 	(advice-add 'xref-push-marker-stack :before #'jd:xref-clear-fwd-marker-ring))
     #+end_src
 
+*** LSP mode
+    The language server protocol is very helpful in making Emacs a modern
+    programming editor. =lsp-mode= is very helpful in this. I also wanted to try
+    =eglot=, but it seems to have some problems with =straight.el=.
+
+    DAP debug is also used. For C/C++ we can run =(dap-cpptools-setup)= once to
+    setup the adapter.
+
+    #+begin_src elisp
+      (use-package lsp-mode
+	:hook
+	((c-mode-common . lsp)
+	 (lsp-mode . lsp-enable-which-key-integration))
+	:custom
+	((lsp-keymap-prefix "C-c l")
+	 (lsp-idle-delay 0.1)
+	 (lsp-file-watch-threshold nil)
+	 (lsp-completion-show-kind nil)
+	 (lsp-headerline-breadcrumb-enable t))
+	:commands lsp
+	:config
+	(use-package dap-mode)
+	(require 'dap-cpptools))
+    #+end_src
+    
+**** lsp-ui
+     =lsp-ui= provides convenient interactive UIs for programming.
+
+     Adds a custom function similar to the one for xref.
+     #+begin_src elisp
+       (defun jd:lsp-ui-find-definitions (arg)
+	 "Allow display in other window with non-nil ARG"
+	 (interactive "P")
+	 (let ((current-prefix-arg nil)
+	       (xref-prompt-for-identifier nil))
+	   (if arg
+	       (call-interactively #'xref-find-definitions-other-window)
+	     (call-interactively #'lsp-ui-peek-find-definitions))))
+     #+end_src
+     
+     #+begin_src elisp
+       (use-package lsp-ui
+	 :straight (:repo "JimDBh/lsp-ui")
+	 :commands lsp-ui-mode
+	 :custom
+	 ((lsp-ui-doc-enable nil)
+	  (lsp-ui-peek-fontify 'on-demand))
+	 :config
+	 (define-key lsp-ui-mode-map [remap jd:xref-find-definitions] #'jd:lsp-ui-find-definitions)
+	 (define-key lsp-ui-mode-map [remap jd:xref-find-references] #'lsp-ui-peek-find-references))
+     #+end_src
+
+**** Other lsp-related
+     #+begin_src elisp
+       (use-package lsp-ivy
+	 :commands lsp-ivy-workspace-symbol)
+       (use-package lsp-treemacs
+	 :commands lsp-treemacs-errors-list)
+     #+end_src
+ 
+*** Compiling
+    #+begin_src elisp
+      (setq compilation-scroll-output 'first-error)
+      (setq compilation-auto-jump-to-first-error t)
+      (setq compilation-skip-threshold 1)
+    #+end_src
+    
+    Define a function to auto-close compilation window if compilation is successful.
+    #+begin_src elisp
+      (defcustom jd--compile-autoclose-time 1 "Seconds to wait before auto close the compilation buffer.")
+      (defun jd:compile-auto-close (buffer string)
+	"Hook to auto close compilation BUFFER. STRING is the returned message."
+	(cond ((string-match "finished" string)
+	       (message "Build may be successful: closing window.")
+	       (run-with-timer jd--compile-autoclose-time nil 'delete-window (get-buffer-window buffer t)))
+	      (t (message "Compilation exited abnormally: %s" (string-trim string)))))
+
+      (push 'jd:compile-auto-close compilation-finish-functions)
+    #+end_src
+
+    Define a function to toggle the skip threshold of compilation buffer:
+    #+begin_src elisp
+      (defun jd:toggle-compile-skip-thresh()
+	"Toggle the compilation skip threshold."
+	(interactive)
+	(if (eq compilation-skip-threshold 1)
+	    (progn (setq compilation-skip-threshold 2)
+		   (message "Skip threshold set to errors"))
+	  (progn (setq compilation-skip-threshold 1)
+		   (message "Skip threshold set to warnings"))))
+    #+end_src
+    
+*** C/C++ programming
+
+**** Language server
+    For C programming, lsp mode is very sufficient. Using the [[https://github.com/MaskRay/ccls][ccls]] server (need
+    to install externally).
+
+    #+begin_src elisp
+      (use-package ccls
+	:defer t)
+    #+end_src
+    
+**** Clang-format
+     Set up clang format so it auto-formats on save, but only for c mode.
+     #+begin_src elisp
+       (use-package clang-format
+	 :custom
+	 ((clang-format-style "file")
+	  (clang-format-executable "clang-format"))
+	 :hook
+	 (c-mode-common . (lambda ()
+			    (add-hook
+			     (make-local-variable 'before-save-hook)
+			     'clang-format-buffer))))
+     #+end_src
+
+**** Others
+     Prefer using =//= instead of =/* */=.
+     #+begin_src elisp
+       (add-hook 'c-mode-common-hook (lambda ()
+				       (c-toggle-comment-style -1)))
+     #+end_src
+
 ** Terminal/Shell
    =vterm= emulates the terminal well and enables many Emacs key-bindings
    as a buffer.
    #+begin_src elisp
      (use-package vterm
+       :commands vterm
        :if module-file-suffix
        :custom
        (vterm-kill-buffer-on-exit t))
@@ -673,6 +812,7 @@
 	:bind
 	("M-w" . clipetty-kill-ring-save))
     #+end_src
+    
 *** Keys
     For company mode, we need =C-0= to =C-9=, but their codes are not
     defined in the key-map.
@@ -759,7 +899,7 @@
 *** Thresholds
     Set gc thres back to a more normal value.
     #+begin_src elisp
-      (setq gc-cons-threshold 50000000)
+      (setq gc-cons-threshold (* 2 1024 1024))
     #+end_src
 
 *** Startup buffer
@@ -784,7 +924,7 @@
      ;;; init.el ends here
    #+end_src
 
-   #  LocalWords:  Init init Andrey's parens Smartparens flyspell gud gc
+   #  LocalWords:  Init init Andrey's parens Smartparens flyspell gud gc lsp
    #  LocalWords:  Magithub treemacs config Swiper swiper thres Clipetty
    #  LocalWords:  TOC
 
