@@ -202,6 +202,9 @@
 	:custom
 	((telephone-line-height 22))
 	:config
+	(setq telephone-line-rhs '((nil telephone-line-misc-info-segment)
+				   (accent telephone-line-major-mode-segment)
+				   (evil telephone-line-airline-position-segment)))
 	(telephone-line-mode))
     #+end_src
 
@@ -210,7 +213,8 @@
     #+begin_src elisp
       (use-package doom-themes
 	:config
-	(load-theme 'doom-one t))
+	(load-theme 'doom-one t)
+	(set-face-attribute 'header-line nil :background "#22262b"))
     #+end_src
 
 *** Tabs
