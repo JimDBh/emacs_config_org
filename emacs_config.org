@@ -709,7 +709,6 @@
      
      #+begin_src elisp
        (use-package lsp-ui
-	 :straight (:repo "JimDBh/lsp-ui")
 	 :commands lsp-ui-mode
 	 :custom
 	 ((lsp-ui-doc-enable nil)
