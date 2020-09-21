@@ -294,7 +294,10 @@
 	((ivy-use-virtual-buffers t)
 	 (ivy-count-format "%d/%d")
 	 (ivy-wrap t)
-	 (ivy-height 10))
+	 (ivy-height 10)
+	 (ivy-re-builders-alist
+	  '((t . ivy--regex-ignore-order))) ;; ignores order
+	 (ivy-initial-inputs-alist nil)) ;; do not start with "^"
 	:config
 	(ivy-mode 1))
     #+end_src
@@ -305,7 +308,8 @@
       (use-package counsel
 	:demand
 	:bind
-	("C-c k" . counsel-rg)
+	(("C-c k" . counsel-rg)
+	 ("C-c i" . counsel-imenu))
 	:config
 	(counsel-mode))
     #+end_src
@@ -683,6 +687,7 @@
 	:custom
 	((lsp-keymap-prefix "C-c l")
 	 (lsp-idle-delay 0.1)
+	 (lsp-enable-file-watchers nil)
 	 (lsp-file-watch-threshold nil)
 	 (lsp-completion-show-kind nil)
 	 (lsp-headerline-breadcrumb-enable t))
@@ -721,7 +726,9 @@
 **** Other lsp-related
      #+begin_src elisp
        (use-package lsp-ivy
+	 :straight (:repo "sebastiansturm/lsp-ivy")
 	 :commands lsp-ivy-workspace-symbol)
+
        (use-package lsp-treemacs
 	 :commands lsp-treemacs-errors-list)
      #+end_src
