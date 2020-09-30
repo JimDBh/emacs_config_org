@@ -135,6 +135,14 @@
      ;;; Code:
    #+end_src
 
+   This can help benchmark initialization time. Remove the disabled mark to use it.
+   #+begin_src elisp
+     (use-package benchmark-init
+       :disabled
+       :config
+       (benchmark-init/activate))
+   #+end_src
+
 ** General Settings
 *** Default files
     Load =early-init.el= manually if it is not supported by this version of Emacs.
@@ -578,6 +586,7 @@
 
     #+begin_src elisp
       (use-package org
+	:defer t
 	:custom
 	(org-return-follows-link t))
     #+end_src
