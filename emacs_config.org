@@ -681,7 +681,7 @@
       (use-package flycheck)
     #+end_src
     
-*** LSP mode
+*** COMMENT LSP mode
     The language server protocol is very helpful in making Emacs a modern
     programming editor. =lsp-mode= is very helpful in this. I also wanted to try
     =eglot=, but it seems to have some problems with =straight.el=.
@@ -804,6 +804,21 @@
 	 :commands lsp-treemacs-errors-list)
      #+end_src
  
+
+*** Eglot
+    #+begin_src elisp
+      (use-package eglot
+	:init
+	(unless (functionp 'project-root)
+	  (defun project-root (project)
+	    (car (project-roots project))))
+	:hook
+	((c-mode . eglot-ensure)
+	 (c++-mode . eglot-ensure))
+	:config
+	(add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd")))
+    #+end_src
+
 *** Compiling
     #+begin_src elisp
       (setq compilation-scroll-output 'first-error)
