@@ -205,6 +205,10 @@
 	(setq telephone-line-rhs '((nil telephone-line-misc-info-segment)
 				   (accent telephone-line-major-mode-segment)
 				   (evil telephone-line-airline-position-segment)))
+	(setq telephone-line-lhs '((evil telephone-line-evil-tag-segment)
+				   (accent telephone-line-vc-segment telephone-line-erc-modified-channels-segment)
+				   (nil telephone-line-process-segment telephone-line-projectile-segment telephone-line-buffer-name-segment)
+				   (nil telephone-line-buffer-modified-segment)))
 	(telephone-line-mode))
     #+end_src
 
@@ -215,6 +219,12 @@
 	:config
 	(load-theme 'doom-one t)
 	(set-face-attribute 'header-line nil :background "#22262b"))
+    #+end_src
+
+*** Font
+    #+begin_src elisp
+      (add-to-list 'default-frame-alist
+		   '(font . "Fira Code-11"))
     #+end_src
 
 *** Tabs
@@ -404,7 +414,7 @@
 						    (telephone-line-face-map 'nil)
 						    (telephone-line-face-map 'accent)))
 		  "Treemacs")))
-	(treemacs-resize-icons 20)
+	(when (window-system) (treemacs-resize-icons 20))
 	(use-package treemacs-magit))
     #+end_src
 
@@ -681,21 +691,57 @@
 
     #+begin_src elisp
       (defun jd:save-window-config (args)
-	(interactive)
 	(window-configuration-to-register 3334)
 	(delete-other-windows))
       (defun jd:load-window-config (args)
-	(interactive)
 	(jump-to-register 3334))
+
+      (defun jd:save-window-config-cmd ()
+	(interactive)
+	(jd:save-window-config nil))
+
+      (defun jd:load-window-config-cmd ()
+	(interactive)
+	(jd:load-window-config nil))
+
+      (defun jd:enable-lsp-if-needed ()
+	(unless (string-match-p (regexp-quote "~") (buffer-name))
+	  (lsp)))
+
+      (defun jd:lsp-headerline--arrow-icon ()
+	"Build the arrow icon for headerline breadcrumb."
+	(if (and (window-system) (require 'all-the-icons nil t))
+	    (all-the-icons-material "chevron_right"
+				    :face 'lsp-headerline-breadcrumb-separator-face)
+	  (propertize ">" 'face 'lsp-headerline-breadcrumb-separator-face)))
+
+      (defun jd:lsp-headerline--symbol-icon (kind)
+	"Build the SYMBOL icon for headerline breadcrumb."
+	(when (and (window-system) (require 'lsp-treemacs nil t))
+	  (concat (lsp-headerline--fix-image-background (lsp-treemacs-symbol-icon kind))
+		  " ")))
+
+      (defun jd:lsp-headerline--filename-with-icon (file-path)
+	"Return the filename from FILE-PATH with the extension related icon."
+	(let ((filename (f-filename file-path)))
+	  (-if-let* ((file-ext (f-ext file-path))
+		     (icon (and (window-system)
+				file-ext
+				(require 'lsp-treemacs nil t)
+				(lsp-treemacs-get-icon file-ext))))
+	      (format "%s %s"
+		      (lsp-headerline--fix-image-background icon)
+		      filename)
+	    filename)))
 
       (use-package lsp-mode
 	:hook
-	((c-mode-common . lsp)
+	((c-mode-common . jd:enable-lsp-if-needed)
 	 (lsp-mode . lsp-enable-which-key-integration))
 	:custom
 	((lsp-keymap-prefix "C-c l")
 	 (lsp-idle-delay 0.1)
-	 (lsp-enable-file-watchers nil)
+	 (lsp-enable-file-watchers t)
 	 (lsp-file-watch-threshold nil)
 	 (lsp-completion-show-kind nil)
 	 (lsp-headerline-breadcrumb-enable t))
@@ -714,7 +760,10 @@
 						 (,dap-ui--debug-window-buffer . ((side . bottom) (slot . 3) (window-width . 0.20)))
 						 (,dap-ui--repl-buffer . ((side . bottom) (slot . 1) (window-height . 0.45)))))
 	  (advice-add 'dap-debug :before #'jd:save-window-config)
-	  (advice-add 'dap-disconnect :after #'jd:load-window-config))
+	  (advice-add 'dap-disconnect :after #'jd:load-window-config)
+	  (advice-add 'lsp-headerline--arrow-icon :override #'jd:lsp-headerline--arrow-icon)
+	  (advice-add 'lsp-headerline--symbol-icon :override #'jd:lsp-headerline--symbol-icon)
+	  (advice-add 'lsp-headerline--filename-with-icon :override #'jd:lsp-headerline--filename-with-icon))
 	(require 'dap-cpptools))
     #+end_src
     
@@ -735,6 +784,7 @@
      
      #+begin_src elisp
        (use-package lsp-ui
+	 :straight (:repo "JimDBh/lsp-ui")
 	 :commands lsp-ui-mode
 	 :custom
 	 ((lsp-ui-doc-enable nil)
@@ -897,7 +947,8 @@
 	"Fit WINDOW to buffer with ratio constraints."
 	(let ((min-width (ceiling (* (frame-width) jd--fit-width-min-ratio)))
 	      (max-width (floor (* (frame-width) jd--fit-width-max-ratio))))
-	  (fit-window-to-buffer window nil nil max-width min-width nil)))
+	  (fit-window-to-buffer window nil nil max-width min-width nil)
+	  (unless (window-system) (window-resize window 1 t))))
     #+end_src
 
     Define the variable to determine width with a fixed ratio. (Currently not used).
