@@ -675,6 +675,7 @@
     different with the default ones.
     #+begin_src elisp
       (use-package xref
+	:demand t
 	:bind
 	(("M-." . jd:xref-find-definitions)
 	 ("M-," . jd:xref-find-references)
@@ -690,10 +691,13 @@
       (use-package flycheck)
     #+end_src
     
-*** COMMENT LSP mode
+*** LSP mode
     The language server protocol is very helpful in making Emacs a modern
-    programming editor. =lsp-mode= is very helpful in this. I also wanted to try
-    =eglot=, but it seems to have some problems with =straight.el=.
+    programming editor. =lsp-mode= is very helpful in this. I think =eglot= is
+    also quite good and elegant, but in the end =lsp-mode= worked better for me.
+
+    There are a bunch of function advising going on here so lsp and dap mode
+    works with tty and my personal taster.
 
     DAP debug is also used. For C/C++ we can run =(dap-cpptools-setup)= once to
     setup the adapter.
@@ -754,13 +758,21 @@
 	 (lsp-file-watch-threshold nil)
 	 (lsp-completion-show-kind nil)
 	 (lsp-headerline-breadcrumb-enable t))
-	:commands lsp
+	:commands (lsp lsp-deferred)
 	:config
 	(use-package dap-mode
 	  :custom
 	  ((dap-auto-configure-features '(locals breakpoints expressions tooltip))
 	   (dap-output-window-max-height 15))
 	  :config
+	  (use-package lsp-ui
+	    :straight (:repo "JimDBh/lsp-ui")
+	    :commands lsp-ui-mode
+	    :custom
+	    ((lsp-ui-doc-enable t)
+	     (lsp-ui-doc-show-with-cursor nil)
+	     (lsp-ui-doc-show-with-mouse t)
+	     (lsp-ui-peek-fontify 'on-demand)))
 	  (require 'dap-ui)
 	  (setq dap-ui-buffer-configurations   `((,dap-ui--locals-buffer . ((side . right) (slot . 1) (window-width . 0.20)))
 						 (,dap-ui--expressions-buffer . ((side . right) (slot . 2) (window-width . 0.20)))
@@ -772,37 +784,12 @@
 	  (advice-add 'dap-disconnect :after #'jd:load-window-config)
 	  (advice-add 'lsp-headerline--arrow-icon :override #'jd:lsp-headerline--arrow-icon)
 	  (advice-add 'lsp-headerline--symbol-icon :override #'jd:lsp-headerline--symbol-icon)
-	  (advice-add 'lsp-headerline--filename-with-icon :override #'jd:lsp-headerline--filename-with-icon))
+	  (advice-add 'lsp-headerline--filename-with-icon :override #'jd:lsp-headerline--filename-with-icon)
+	  (set-face-attribute 'dap-ui-pending-breakpoint-face nil :background "gray13")
+	  (set-face-attribute 'dap-ui-verified-breakpoint-face nil :background "royalblue4"))
 	(require 'dap-cpptools))
     #+end_src
     
-**** lsp-ui
-     =lsp-ui= provides convenient interactive UIs for programming.
-
-     Adds a custom function similar to the one for xref.
-     #+begin_src elisp
-       (defun jd:lsp-ui-find-definitions (arg)
-	 "Allow display in other window with non-nil ARG"
-	 (interactive "P")
-	 (let ((current-prefix-arg nil)
-	       (xref-prompt-for-identifier nil))
-	   (if arg
-	       (call-interactively #'xref-find-definitions-other-window)
-	     (call-interactively #'lsp-ui-peek-find-definitions))))
-     #+end_src
-     
-     #+begin_src elisp
-       (use-package lsp-ui
-	 :straight (:repo "JimDBh/lsp-ui")
-	 :commands lsp-ui-mode
-	 :custom
-	 ((lsp-ui-doc-enable nil)
-	  (lsp-ui-peek-fontify 'on-demand))
-	 :config
-	 (define-key lsp-ui-mode-map [remap jd:xref-find-definitions] #'jd:lsp-ui-find-definitions)
-	 (define-key lsp-ui-mode-map [remap jd:xref-find-references] #'lsp-ui-peek-find-references))
-     #+end_src
-
 **** Other lsp-related
      #+begin_src elisp
        (use-package lsp-ivy
@@ -812,9 +799,9 @@
        (use-package lsp-treemacs
 	 :commands lsp-treemacs-errors-list)
      #+end_src
- 
+     
 
-*** Eglot
+*** COMMENT Eglot
     #+begin_src elisp
       (use-package eglot
 	:init
