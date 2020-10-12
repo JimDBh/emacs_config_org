@@ -177,8 +177,8 @@ Set recenter positions so we can see a portion of the previous/next page.
 The default scroll amount is too fast for me. 
 #+begin_src elisp
   (setq mouse-wheel-scroll-amount
-	'(3 ((shift) . 1) ((meta)) ((control) . text-scale))
-	mouse-wheel-progressive-speed nil)
+        '(3 ((shift) . 1) ((meta)) ((control) . text-scale))
+        mouse-wheel-progressive-speed nil)
 #+end_src
 
 Resize by pixels. 
