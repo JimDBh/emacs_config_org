@@ -20,6 +20,7 @@
   - [[#projects][Projects]]
   - [[#version-control][Version Control]]
   - [[#editing][Editing]]
+  - [[#latex][Latex]]
   - [[#org-mode][Org-mode]]
   - [[#programming][Programming]]
   - [[#terminalshell][Terminal/Shell]]
@@ -207,6 +208,7 @@ Currently using telephone-line. I also liked doom-mode-line but it had
 some bugs in updating the mode-line contents when I tested it.
 #+begin_src elisp
   (use-package telephone-line
+    :disabled
     :custom
     ((telephone-line-height 22))
     :config
@@ -218,6 +220,29 @@ some bugs in updating the mode-line contents when I tested it.
 			       (nil telephone-line-process-segment telephone-line-projectile-segment telephone-line-buffer-name-segment)
 			       (nil telephone-line-buffer-modified-segment)))
     (telephone-line-mode))
+
+  (use-package doom-modeline
+    :custom
+    (doom-modeline-height 30)
+    (doom-modeline-buffer-file-name-style 'truncate-with-project)
+    :config
+    ;; do not display the host name, it's too long.
+    (doom-modeline-def-segment remote-host-no-host
+			       "Hostname for remote buffers."
+			       (when default-directory
+				 (when (file-remote-p default-directory 'host)
+				   (propertize
+				    " @"
+				    'face (if (doom-modeline--active) 'doom-modeline-host 'mode-line-inactive)))))
+    (doom-modeline-def-modeline 'no-host-main
+				'(bar workspace-name window-number modals matches buffer-info remote-host-no-host buffer-position word-count parrot selection-info)
+				;; '(objed-state persp-name battery grip irc mu4e gnus github debug lsp input-method indent-info process vcs checker misc-info)
+				'(objed-state persp-name battery grip irc mu4e gnus github debug lsp input-method indent-info process vcs misc-info))
+    (defun setup-custom-doom-modeline ()
+      "Setup the customized modeline for doom modeline."
+      (doom-modeline-set-modeline 'no-host-main 'default))
+    (add-hook 'doom-modeline-mode-hook 'setup-custom-doom-modeline)
+    (doom-modeline-mode 1))
 #+end_src
 
 *** Themes
@@ -226,7 +251,20 @@ I quite like doom themes since they provide a modern look to Emacs.
   (use-package doom-themes
     :config
     (load-theme 'doom-one t)
-    (set-face-attribute 'header-line nil :background "#22262b"))
+    (set-face-attribute 'header-line nil :background "#22262b")
+    (set-face-attribute 'tab-bar nil :background "#151823")
+    (set-face-attribute 'tab-bar-tab nil :background "#22262b")
+    (set-face-attribute 'tab-bar-tab-inactive nil :background "#182126")
+    (when (featurep 'telephone-line)
+      (set-face-attribute 'telephone-line-accent-active nil :background "#3f425a")
+      (set-face-attribute 'telephone-line-accent-inactive nil :background "#232531")))
+
+  (use-package jetbrains-darcula-theme
+    :disabled
+    :config
+    (load-theme 'jetbrains-darcula)
+    (set-face-attribute 'header-line nil :underline nil)
+    (set-face-attribute 'highlight nil :background "#c1c1c1"))
 #+end_src
 
 *** Font
@@ -236,6 +274,8 @@ I quite like doom themes since they provide a modern look to Emacs.
 #+end_src
 
 *** Tabs
+
+**** Centaur tabs
 Use Centaur tabs. It has a modern look, but sometimes does not play
 that well with other packages. Need to be careful.
 
@@ -298,6 +338,22 @@ not in centaur tabs mode.
     (centaur-tabs-headline-match))
 #+end_src
 
+**** Tab bar
+Tab bars are quite useful in emacs to manage workspaces. use =C-t= as the prefix:
+
+#+begin_src elisp
+  (use-package tab-bar
+    :bind (("C-x t s" . tab-bar-switch-to-tab))
+    ;; :config
+    ;; (tab-bar-mode)
+    )
+
+  ;; (use-package burly
+  ;;   :bind (("C-t b" . burly-bookmark-frames)
+  ;; 	 ("C-t o" . burly-open-bookmark)))
+#+end_src
+
+
 ** Ivy Setup 
 Ivy (together with counsel, swiper) makes completion quick and easy.
 
@@ -309,7 +365,7 @@ Ivy (together with counsel, swiper) makes completion quick and easy.
      ("C-c V" . ivy-pop-view)
      ("C-c C-r" . ivy-resume))
     :custom
-    ((ivy-use-virtual-buffers t)
+    ((ivy-use-virtual-buffers nil)
      (ivy-count-format "%d/%d")
      (ivy-wrap t)
      (ivy-height 10)
@@ -317,7 +373,8 @@ Ivy (together with counsel, swiper) makes completion quick and easy.
       '((t . ivy--regex-ignore-order))) ;; ignores order
      (ivy-initial-inputs-alist nil)) ;; do not start with "^"
     :config
-    (ivy-mode 1))
+    (ivy-mode 1)
+    (set-face-attribute 'ivy-virtual nil :foreground "#a3a9ad" :inherit nil))
 #+end_src
 *** Counsel
 Counsel provides various extended functions using ivy completion.
@@ -327,7 +384,8 @@ Counsel provides various extended functions using ivy completion.
     :demand
     :bind
     (("C-c k" . counsel-rg)
-     ("C-c i" . counsel-imenu))
+     ("C-c i" . counsel-imenu)
+     ("C-c r" . counsel-recentf))
     :config
     (counsel-mode))
 #+end_src
@@ -346,6 +404,11 @@ Various packages that enhance ivy.
   (use-package ivy-rich
     :config
     (ivy-rich-mode 1))
+
+  (when (window-system)
+    (use-package all-the-icons-ivy-rich
+      :config
+      (all-the-icons-ivy-rich-mode)))
 #+end_src
 
 =smex= shows the most recent command in M-x. Specify where it saves
@@ -550,7 +613,7 @@ braces (automatically add a newline there) and c comment pairs.
 
 #+begin_src elisp
   (use-package smartparens-config
-    :straight smartparens
+    :straight (smartparens :no-byte-compile t)
     :config
     (sp-with-modes
 	'(c-mode c++-mode)
@@ -577,6 +640,23 @@ Set the fill column width to be 80 for the general case.
   (setq-default fill-column 80)
 #+end_src
 
+** Latex
+Use lsp-latex with texlab for cross reference and build.
+#+begin_src elisp
+  (with-eval-after-load 'lsp-mode
+    (use-package lsp-latex))
+#+end_src
+
+Use auctex.
+#+begin_src elisp
+  (use-package auctex
+    :hook
+    (tex-mode . TeX-mode)
+    (TeX-mode . TeX-source-correlate-mode)
+    :config
+    (add-hook 'LaTeX-mode-hook (lambda () (define-key 'LaTeX-mode-map "C-c C-c" #'lsp-latex-build))))
+#+end_src
+
 ** Org-mode
 I am quite new to org mode, but there are some things already quite useful.
 
@@ -588,7 +668,11 @@ Emacs comes with a default yet quite old version of org. Install the new one.
   (use-package org
     :defer t
     :custom
-    (org-return-follows-link t))
+    (org-return-follows-link t)
+    :config
+    ;; this may need to be tuned for different themes
+    ;; (set-face-attribute 'org-block nil :background "#22211a")
+    )
 #+end_src
 
 *** TOC
@@ -717,6 +801,8 @@ setup the adapter.
     (jd:load-window-config nil))
 
   (defun jd:enable-lsp-if-needed ()
+    ;; (when (or (derived-mode-p 'c-mode) (derived-mode-p 'c++-mode))
+    ;;   (use-package ccls))
     (unless (string-match-p (regexp-quote "~") (buffer-name))
       (lsp)))
 
@@ -750,6 +836,7 @@ setup the adapter.
     :hook
     ((c-mode-common . jd:enable-lsp-if-needed)
      (latex-mode . jd:enable-lsp-if-needed)
+     (TeX-mode . jd:enable-lsp-if-needed)
      (bibtex-mode . jd:enable-lsp-if-needed)
      (lsp-mode . lsp-enable-which-key-integration))
     :custom
@@ -758,21 +845,21 @@ setup the adapter.
      (lsp-enable-file-watchers t)
      (lsp-file-watch-threshold nil)
      (lsp-completion-show-kind nil)
-     (lsp-headerline-breadcrumb-enable t))
+     (lsp-headerline-breadcrumb-enable t)
+     (lsp-clients-clangd-args '("-background-index")))
     :commands (lsp lsp-deferred)
     :config
     (use-package dap-mode
       :custom
-      ((dap-auto-configure-features '(locals breakpoints expressions tooltip))
+      ((dap-auto-configure-features '(locals breakpoints expressions))
        (dap-output-window-max-height 15))
       :config
       (use-package lsp-ui
-	:straight (:repo "JimDBh/lsp-ui")
 	:commands lsp-ui-mode
 	:custom
 	((lsp-ui-doc-enable nil)
 	 (lsp-ui-doc-show-with-cursor nil)
-	 (lsp-ui-doc-show-with-mouse t)
+	 (lsp-ui-doc-show-with-mouse nil)
 	 (lsp-ui-peek-fontify 'on-demand)))
       (require 'dap-ui)
       (setq dap-ui-buffer-configurations   `((,dap-ui--locals-buffer . ((side . right) (slot . 1) (window-width . 0.20)))
@@ -788,7 +875,6 @@ setup the adapter.
       (advice-add 'lsp-headerline--filename-with-icon :override #'jd:lsp-headerline--filename-with-icon)
       (set-face-attribute 'dap-ui-pending-breakpoint-face nil :background "gray13")
       (set-face-attribute 'dap-ui-verified-breakpoint-face nil :background "royalblue4"))
-    (use-package lsp-latex) 
     (require 'dap-cpptools))
 #+end_src
     
@@ -850,15 +936,7 @@ Define a function to toggle the skip threshold of compilation buffer:
 #+end_src
     
 *** C/C++ programming
-
-**** Language server
-For C programming, lsp mode is very sufficient. Using the [[https://github.com/MaskRay/ccls][ccls]] server (need
-to install externally).
-
-#+begin_src elisp
-  (use-package ccls
-    :defer t)
-#+end_src
+Clangd language server is used with lsp-mode for C programming.
     
 **** Clang-format
 Set up clang format so it auto-formats on save, but only for c mode.
@@ -881,6 +959,25 @@ Prefer using =//= instead of =/* */=.
 				  (c-toggle-comment-style -1)))
 #+end_src
 
+*** GDB set up
+Use gdb many windows. But do not pop-up.
+#+begin_src elisp
+  (use-package gdb-mi
+    :custom
+    ((gdb-display-io-nopopup t)
+     (gdb-many-windows t)))
+#+end_src
+
+*** Others
+Display line number mode for programming.
+#+begin_src elisp
+  (use-package display-line-numbers
+    :demand t
+    :custom
+    (display-line-numbers-width 4)
+    :hook
+    ((prog-mode . display-line-numbers-mode)))
+#+end_src
 
 ** Terminal/Shell
 =vterm= emulates the terminal well and enables many Emacs key-bindings
@@ -912,8 +1009,8 @@ In TTY Emacs, I still want to use mouse sometimes.
     (xterm-mouse-mode t)
     (setq mouse-sel-mode t
 	  xterm-set-window-title t))
-
 #+end_src
+
 *** Clipetty
 =clipetty= helps transferring the paste board from a tty Emacs to a
 remote client.
@@ -931,7 +1028,28 @@ defined in the key-map.
     (define-key input-decode-map (format "\e[%d;5u" (+ i 48)) (kbd (format "C-%d" i))))
 #+end_src
 
+*** Others
+LSP mode sometimes tries to display icons.
+#+begin_src elisp
+  (unless window-system
+    (setq lsp-modeline-code-actions-segments '(count)))
+#+end_src
+
 ** Buffer/Window Management
+*** COMMENT =purpose=
+Gives purpose to windows for easy management.
+#+begin_src elisp
+  (use-package window-purpose
+    :demand t
+    :custom
+    (purpose-use-default-configuration nil)
+    :config
+    (add-to-list 'purpose-user-mode-purposes '(prog-mode . "programming"))
+    (add-to-list 'purpose-user-mode-purposes '(vterm-mode . "term"))
+    (purpose-compile-user-configuration)
+    (purpose-mode))
+#+end_src
+    
 *** =ace-window=
 Jumping among windows. 
 #+begin_src elisp
@@ -996,6 +1114,7 @@ Set =display-buffer-alist= to display certain buffers in side windows.
 	   (slot . 0)
 	   jd--par-sidewin-top-bot)))
 #+end_src
+
 ** Miscellaneous Packages
 *** Which-key mode
 Displays the key bindings after a prefix. 
@@ -1004,6 +1123,13 @@ Displays the key bindings after a prefix.
   (use-package which-key
     :config
     (which-key-mode t))
+#+end_src
+*** Sudo edit
+Makes it easier to edit files that needs sudo.
+
+#+begin_src elisp
+  (use-package sudo-edit
+    :commands (sudo-edit sudo-edit-find-file))
 #+end_src
 
 ** Final Touch
