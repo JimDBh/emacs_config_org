@@ -934,6 +934,15 @@ Define a function to toggle the skip threshold of compilation buffer:
       (progn (setq compilation-skip-threshold 1)
 	       (message "Skip threshold set to warnings"))))
 #+end_src
+
+Support xterm coloring in compilation buffers:
+#+begin_src elisp
+  (use-package 'xterm-color)
+  (setq compilation-environment '("TERM=xterm-256color"))
+  (defun jd:advice-compilation-filter (f proc string)
+    (funcall f proc (xterm-color-filter string)))
+  (advice-add 'compilation-filter :around #'jd:advice-compilation-filter)
+#+end_src
     
 *** C/C++ programming
 Clangd language server is used with lsp-mode for C programming.
