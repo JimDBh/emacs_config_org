@@ -1,0 +1,5 @@
+# emacs_config_org
+My own emacs configurations in an org file. 
+
+This may not work on every machine so try at your own risk. It is recommended to copy snippets instead of using the whole file. Just for tryouts, please download emacs_config.org and put in =~/.emacs.d/=.
+Then open the file via emacs (vanilla emacs is fine), and run =M-x org-babel-tangle= or just =C-c C-v t=. Then restart emacs and let it run for a while :)
