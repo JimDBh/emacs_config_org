@@ -16,7 +16,7 @@
   - [[#header-1][Header]]
   - [[#general-settings][General Settings]]
   - [[#appearance][Appearance]]
-  - [[#ivy-setup][Ivy Setup]]
+  - [[#read-completion][Read-Completion]]
   - [[#projects][Projects]]
   - [[#version-control][Version Control]]
   - [[#editing][Editing]]
@@ -74,9 +74,8 @@
     We are using the develop branch of the straight repo. Also by default
     use straight with use-package.
     #+begin_src elisp
-      ;; (defvar straight-repository-branch "develop")
-      (defvaralias 'comp-deferred-compilation-black-list
-	'comp-deferred-compilation-deny-list)
+      (defvar straight-repository-branch "master")
+      (defvaralias 'comp-deferred-compilation-black-list 'comp-deferred-compilation-deny-list)
 
       (defvar bootstrap-version)
       (let ((bootstrap-file
@@ -145,7 +144,7 @@
    This can help benchmark initialization time. Remove the disabled mark to use it.
    #+begin_src elisp
      (use-package benchmark-init
-       :disabled
+       :disabled ;; comment this line to benchmark at startup
        :config
        (benchmark-init/activate))
    #+end_src
@@ -167,15 +166,21 @@
       (defconst custom-file (expand-file-name "autogen-cus.el" user-emacs-directory))
       (unless (file-exists-p custom-file) (write-region "" nil custom-file))
       (load custom-file)
+    #+end_src
 
-      (add-to-list 'comp-deferred-compilation-black-list
-		   ".*autoload.*")
+    Do not do deferred compilation on autoload files. This is needed with =straight=
+    for now.
+    #+begin_src elisp
+      (use-package comp
+	:straight (:type built-in))
+      (add-to-list 'comp-deferred-compilation-deny-list ".*autoload.*")
+      (setq comp-async-report-warnings-errors nil)
     #+end_src
 
 *** History saving
-    Save command and buffer history across sessions. 
+    Using recentf-mode. Because we are using =prescient= so no need for =savehist-mode=.
     #+begin_src elisp
-      (savehist-mode t)
+      (recentf-mode 1)
     #+end_src
 
 *** Other
@@ -204,7 +209,6 @@
     Allow recursive minibuffer.
     #+begin_src elisp
       (setq enable-recursive-minibuffers  t)
-      (minibuffer-depth-indicate-mode 1)
     #+end_src
 
 ** Appearance
@@ -219,50 +223,39 @@
     #+end_src
 
 *** Mode-line
-    Currently using telephone-line. I also liked doom-mode-line but it had
-    some bugs in updating the mode-line contents when I tested it.
+    Currently using =doom-modeline=. I also liked =telephone-line= too.
     #+begin_src elisp
-      (use-package telephone-line
-	:disabled
-	:custom
-	((telephone-line-height 22))
-	:config
-	(setq telephone-line-rhs '((nil telephone-line-misc-info-segment)
-				   (accent telephone-line-major-mode-segment)
-				   (evil telephone-line-airline-position-segment)))
-	(setq telephone-line-lhs '((evil telephone-line-evil-tag-segment)
-				   (accent telephone-line-vc-segment telephone-line-erc-modified-channels-segment)
-				   (nil telephone-line-process-segment telephone-line-projectile-segment telephone-line-buffer-name-segment)
-				   (nil telephone-line-buffer-modified-segment)))
-	(telephone-line-mode))
-
       (use-package doom-modeline
 	:custom
 	(doom-modeline-height 30)
 	(doom-modeline-buffer-file-name-style 'truncate-with-project)
 	:config
-	;; do not display the host name, it's too long.
+	;; do not display the host name, it's often too long.
 	(doom-modeline-def-segment remote-host-no-host
 	  "Hostname for remote buffers."
 	  (when default-directory
 	    (when (file-remote-p default-directory 'host)
 	      (propertize
 	       " @"
-	       'face (if (doom-modeline--active) 'doom-modeline-host 'mode-line-inactive)))))
+	       'face (if (doom-modeline--active)
+			 'doom-modeline-host
+		       'mode-line-inactive)))))
 	(doom-modeline-def-modeline 'no-host-main
-	  '(bar workspace-name window-number modals matches buffer-info remote-host-no-host buffer-position word-count parrot selection-info)
-	  '(objed-state persp-name battery grip irc mu4e gnus github debug lsp input-method indent-info process vcs checker misc-info)
-	  ;; '(objed-state persp-name battery grip irc mu4e gnus github debug lsp input-method indent-info process vcs misc-info)
-	  )
+	  '(bar workspace-name window-number modals matches buffer-info
+		remote-host-no-host buffer-position word-count parrot selection-info)
+	  '(objed-state persp-name battery grip irc mu4e gnus github debug
+			lsp input-method indent-info process vcs checker misc-info))
+
 	(defun setup-custom-doom-modeline ()
 	  "Setup the customized modeline for doom modeline."
 	  (doom-modeline-set-modeline 'no-host-main 'default))
+
 	(add-hook 'doom-modeline-mode-hook 'setup-custom-doom-modeline)
 	(doom-modeline-mode 1))
     #+end_src
 
 *** Themes
-    I quite like doom themes since they provide a modern look to Emacs. 
+    I quite like =doom-themes= since they provide a modern look to Emacs.
     #+begin_src elisp
       (use-package doom-themes
 	:config
@@ -271,35 +264,33 @@
 	(set-face-attribute 'tab-bar nil :background "#151823")
 	(set-face-attribute 'tab-bar-tab nil :background "#22262b")
 	(set-face-attribute 'tab-bar-tab-inactive nil :background "#182126")
-	(when (featurep 'telephone-line)
-	  (set-face-attribute 'telephone-line-accent-active nil :background "#3f425a")
-	  (set-face-attribute 'telephone-line-accent-inactive nil :background "#232531")))
-
-      (use-package jetbrains-darcula-theme
-	:disabled
-	:config
-	(load-theme 'jetbrains-darcula)
-	(set-face-attribute 'header-line nil :underline nil)
-	(set-face-attribute 'highlight nil :background "#c1c1c1"))
+	(set-face-attribute 'highlight nil
+			    :background "#2257a0"
+			    :foreground "#dfdfdf"
+			    :distant-foreground "#1b2229"
+			    :weight 'normal)
+	(set-face-attribute 'completions-annotations nil
+			    :slant 'normal))
     #+end_src
 
 *** Font
+    The Fira font works very well both in terminal and in graphic emacs.
     #+begin_src elisp
-      (add-to-list 'default-frame-alist
-		   '(font . "Fira Code-11"))
+      (add-to-list 'default-frame-alist '(font . "Fira Code-11"))
     #+end_src
 
 *** Tabs
 
 **** Centaur tabs
-     Use Centaur tabs. It has a modern look, but sometimes does not play
-     that well with other packages. Need to be careful.
+     Use Centaur tabs. It has a modern look, but sometimes does not play that
+     well with other packages. Need to be careful.
 
-     This is currently disabled since I just feel tabs may not be that useful after all. 
+     This is currently not turned on by default since I just feel tabs may not
+     be that useful after all.
 
-     Define a function to check if centaur tabs mode is active, if we want
-     to call the function =centaur-tabs-local-mode=, since it will fail if
-     not in centaur tabs mode.
+     Define a function to check if centaur tabs mode is active, if we want to
+     call the function =centaur-tabs-local-mode=, since it will fail if not in
+     centaur tabs mode.
 
      #+begin_src elisp
        (defun jd:disable-centaur-tabs ()
@@ -355,107 +346,125 @@
      #+end_src
 
 **** Tab bar
-     Tab bars are quite useful in emacs to manage workspaces. use =C-t= as the prefix:
+     Tab bars are quite useful in emacs to manage workspaces. But like tabs, I
+     find myself not using them very often. Using =C-x t= as the prefix:
 
      #+begin_src elisp
        (use-package tab-bar
-	 :bind (("C-x t s" . tab-bar-switch-to-tab))
-	 ;; :config
-	 ;; (tab-bar-mode)
-	 )
-
-       ;; (use-package burly
-       ;;   :bind (("C-t b" . burly-bookmark-frames)
-       ;; 	 ("C-t o" . burly-open-bookmark)))
+	 :bind (("C-x t s" . tab-bar-switch-to-tab)))
      #+end_src
 
 *** Others
+    Use a bar for cursors. Just a personal preference.
     #+begin_src elisp
       (setq-default cursor-type 'bar)
     #+end_src
 
-
-** Ivy Setup 
-   Ivy (together with counsel, swiper) makes completion quick and easy.
-
-*** Basic ivy
+** Read-Completion
+*** Prescient
+    Better and simpler ordering of candidates.
     #+begin_src elisp
-      (use-package ivy
+      (use-package prescient
+	:config
+	(prescient-persist-mode +1))
+    #+end_src
+    
+*** Selectrum
+    Use =selectrum= for incremental completion.
+    #+begin_src elisp
+      (use-package selectrum
 	:bind
-	(("C-c v" . ivy-push-view)
-	 ("C-c V" . ivy-pop-view)
-	 ("C-c C-r" . ivy-resume))
-	:custom
-	((ivy-use-virtual-buffers nil)
-	 (ivy-count-format "%d/%d")
-	 (ivy-wrap t)
-	 (ivy-height 10)
-	 (ivy-re-builders-alist
-	  '((t . ivy--regex-ignore-order))) ;; ignores order
-	 (ivy-initial-inputs-alist nil)) ;; do not start with "^"
+	(("C-c C-r" . selectrum-repeat))
 	:config
-	(ivy-mode 1)
-	(set-face-attribute 'ivy-virtual nil :foreground "#a3a9ad" :inherit nil))
+	(selectrum-mode +1))
     #+end_src
-*** Counsel
-    Counsel provides various extended functions using ivy completion.
-    =counsel-mode= binds various shortcuts. 
+
+    Use prescient for ordering.
     #+begin_src elisp
-      (use-package counsel
-	:demand
-	:bind
-	(("C-c k" . counsel-rg)
-	 ("C-c i" . counsel-imenu)
-	 ("C-c r" . counsel-recentf))
+      (use-package selectrum-prescient
+	:if (featurep 'prescient)
 	:config
-	(counsel-mode))
+	(selectrum-prescient-mode +1))
     #+end_src
-*** Swiper
-    Swiper should be installed already with ivy. Use it for searching. 
+    
+*** Consult
+    Useful functionalities for complete-read.
     #+begin_src elisp
-      (use-package swiper
-	:bind
-	("C-s" . swiper-isearch))
-    #+end_src
-*** Enhancements
-    Various packages that enhance ivy.
-
-    =ivy-rich= displays more info in ivy. 
-    #+begin_src elisp
-      (use-package ivy-rich
-	:config
-	(ivy-rich-mode 1))
-
-      (when (window-system)
-	(use-package all-the-icons-ivy-rich
-	  :config
-	  (all-the-icons-ivy-rich-mode)))
-    #+end_src
-
-    =smex= shows the most recent command in M-x. Specify where it saves
-    the history. This could be helpful if we have multiple Emacs profiles.
-    #+begin_src elisp
-      (use-package smex
-	:custom
-	(smex-save-file (expand-file-name "smex-hist.el" user-emacs-directory))
-	:config
-	(smex-initialize))
-    #+end_src
-
-    Use =C-o= to use hydra with ivy
-    #+begin_src elisp
-      (use-package ivy-hydra)
-    #+end_src
-
-    Show xref results in ivy. Needs additional set-up for newer Emacs. 
-    #+begin_src elisp
-      (use-package ivy-xref
+      (use-package consult
+	:bind (;; C-c bindings (mode-specific-map)
+	       ("C-c m" . consult-mode-command)
+	       ("C-c o" . consult-outline)
+	       ("C-c i" . consult-imenu)
+	       ;; C-x bindings (ctl-x-map)
+	       ("C-x M-:" . consult-complex-command)
+	       ("C-x b" . consult-buffer)
+	       ("C-x 4 b" . consult-buffer-other-window)
+	       ("C-x 5 b" . consult-buffer-other-frame)
+	       ("C-x r x" . consult-register)
+	       ("C-x r b" . consult-bookmark)
+	       ;; M-g bindings (goto-map)
+	       ("M-g g" . consult-goto-line)
+	       ("M-g M-g" . consult-goto-line)
+	       ("M-g m" . consult-mark)
+	       ("M-g k" . consult-global-mark)
+	       ("M-g e" . consult-error)
+	       ("M-g f" . consult-flymake)
+	       ;; M-s bindings (search-map)
+	       ("M-s g" . consult-ripgrep)      ;; Alternatives: consult-grep, consult-ripgrep
+	       ("M-s f" . consult-find)          ;; Alternatives: consult-locate, my-fdfind
+	       ("M-s l" . consult-line)
+	       ("M-s m" . consult-multi-occur)
+	       ("M-s k" . consult-keep-lines)
+	       ("M-s u" . consult-focus-lines)
+	       ;; Other bindings
+	       ("M-y" . consult-yank-pop)
+	       ("<help> a" . consult-apropos)
+	       ("C-s" . consult-line))
 	:init
-	(when (>= emacs-major-version 27)
-	  (setq xref-show-definitions-function #'ivy-xref-show-defs))
-	(setq xref-show-xrefs-function #'ivy-xref-show-xrefs))
+	(setq register-preview-delay 0
+	      register-preview-function #'consult-register-preview)
+	:config
+	(setq consult-preview-key (kbd "C-l"))
+	(setq consult-narrow-key "<")
+	(autoload 'projectile-project-root "projectile")
+	(setq consult-project-root-function #'projectile-project-root))
     #+end_src
 
+    Use consult with xref. This is currently only in my local consult repo.
+    #+begin_src elisp
+      (use-package consult-xref
+	:straight consult
+	:config
+	(setup-consult-xref))
+    #+end_src
+
+*** Marginalia
+    Add annotations to minibuffer completions.
+    #+begin_src elisp
+      (use-package marginalia
+	:bind (:map minibuffer-local-map
+		    ("C-M-a" . marginalia-cycle))
+	:init
+	(marginalia-mode)
+	(advice-add #'marginalia-cycle :after
+		    (lambda () (when (bound-and-true-p selectrum-mode) (selectrum-exhibit))))
+	(setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil)))
+    #+end_src
+
+*** embark
+    Enables useful actions to minibuffer completions.
+    #+begin_src elisp
+      (use-package embark
+	:bind
+	("C-o" . embark-act))
+
+      (use-package embark-consult
+	:after (embark consult)
+	:demand t
+	:hook
+	(embark-collect-mode . embark-consult-preview-minor-mode))
+    #+end_src
+    
 ** Projects
 *** Projectile
     Use projectile to manage projects in Emacs. Maybe will consider using
@@ -469,73 +478,53 @@
 	(use-package counsel-projectile
 	  :if (featurep 'counsel)
 	  :config
-	  (counsel-projectile-mode t))
-	(message "load"))
+	  (counsel-projectile-mode t)))
     #+end_src
 
 *** Ripgrep
     Ripgrep is very fast and convenient when searching in a project. 
     #+begin_src elisp
-      (use-package rg
-	:defer t)
+      (use-package ripgrep)
     #+end_src
 
 *** Treemacs
     Side bar to navigate files in a project. Quite helpful at times, and
     looks modern.  It might conflict with other window management
     packages, so need to be careful in config.
-
-    Also, if using telephone line, need to add a separator so it can
-    adjust treemacs mode-line height.
     #+begin_src elisp
       (use-package treemacs
 	:commands treemacs
-	:bind
-	("C-x 1" . treemacs-delete-other-windows)
 	:custom
 	((treemacs-width 34)
-	 (treemacs-no-delete-other-windows nil)
+	 (treemacs-no-delete-other-windows t)
 	 (treemacs-space-between-root-nodes nil))
 	:custom-face
 	(treemacs-root-face ((t (:inherit font-lock-string-face :weight bold :height 1.1))))
 	:config
-	(when (featurep 'telephone-line)
-	  (setq treemacs-user-mode-line-format
-		'((:eval
-		   (telephone-line-separator-render telephone-line-abs-left
-						    (telephone-line-face-map 'nil)
-						    (telephone-line-face-map 'accent)))
-		  "Treemacs")))
 	(when (window-system) (treemacs-resize-icons 20))
 	(use-package treemacs-magit))
     #+end_src
 
 ** Version Control
-   Use magit for version control (of course). 
-
-*** Transient
-    Required by magit. 
-    #+begin_src elisp
-      (use-package transient)
-    #+end_src
+   Use =magit= for version control (of course). 
 
 *** Magit
-Customize magit a bit to my liking.
-#+begin_src elisp
-  (use-package magit
-    :defer t
-    :bind
-    ("C-x g" . magit-status)
-    :custom
-    ((ediff-diff-options "-w")
-     (ediff-split-window-function #'split-window-horizontally)
-     (ediff-window-setup-function #'ediff-setup-windows-plain)
-     (magit-display-buffer-function #'magit-display-buffer-fullcolumn-most-v1))
-    :config
-    (use-package magithub
-      :config
-      (magithub-feature-autoinject t)))
-#+end_src
+    Customize magit a bit to my liking.
+    #+begin_src elisp
+      (use-package magit
+	:defer t
+	:bind
+	("C-x g" . magit-status)
+	:custom
+	((ediff-diff-options "-w")
+	 (ediff-split-window-function #'split-window-horizontally)
+	 (ediff-window-setup-function #'ediff-setup-windows-plain)
+	 (magit-display-buffer-function #'magit-display-buffer-fullcolumn-most-v1))
+	:config
+	(use-package magithub
+	  :config
+	  (magithub-feature-autoinject t)))
+    #+end_src
 
 *** Git gutter
     Subtly show diff info on the margin. Works with both terminal and graphic Emacs.
@@ -591,7 +580,7 @@ Customize magit a bit to my liking.
 	  (define-key company-active-map (kbd (format "C-%d" i)) 'company-complete-number)))
     #+end_src
 
-    Use company box if we are not using TTY Emacs.
+    Use =company-box= if we are not using TTY Emacs.
     #+begin_src elisp
       (use-package company-box
 	:if window-system
@@ -626,9 +615,6 @@ Customize magit a bit to my liking.
 	      ("C-;" . flyspell-correct-wrapper)
 	      ("C-," . nil)
 	      ("C-." . nil)))
-
-      (use-package flyspell-correct-ivy
-	:if (featurep 'ivy))
     #+end_src
 
 *** Undo-tree
@@ -675,20 +661,12 @@ Customize magit a bit to my liking.
     #+end_src
 
 ** Latex
-   Use lsp-latex with texlab for cross reference and build.
-   #+begin_src elisp
-     (with-eval-after-load 'lsp-mode
-       (use-package lsp-latex))
-   #+end_src
-
-   Use auctex.
+   Use =auctex=.
    #+begin_src elisp
      (use-package auctex
        :hook
        (tex-mode . TeX-mode)
-       (TeX-mode . TeX-source-correlate-mode)
-       :config
-       (add-hook 'LaTeX-mode-hook (lambda () (define-key 'LaTeX-mode-map "C-c C-c" #'lsp-latex-build))))
+       (TeX-mode . TeX-source-correlate-mode))
    #+end_src
 
 ** Org-mode
@@ -702,11 +680,7 @@ Customize magit a bit to my liking.
       (use-package org
 	:defer t
 	:custom
-	(org-return-follows-link t)
-	:config
-	;; this may need to be tuned for different themes
-	;; (set-face-attribute 'org-block nil :background "#22211a")
-	)
+	(org-return-follows-link t))
     #+end_src
 
 *** TOC
@@ -739,11 +713,11 @@ Customize magit a bit to my liking.
     Similarly, define a custom function that do not prompt the user when the
     find reference function has only just one result.
     #+begin_src elisp
-      (defun jd:xref-find-references ()
+      (defun jd:xref-find-references (arg)
 	"Find references with no prefix arg."
-	(interactive)
+	(interactive "p")
 	(let ((current-prefix-arg nil)
-	      (xref-prompt-for-identifier nil))
+	      (xref-prompt-for-identifier (> arg 1)))
 	  (call-interactively 'xref-find-references)))
     #+end_src
 
@@ -803,11 +777,6 @@ Customize magit a bit to my liking.
 	(advice-add 'xref-push-marker-stack :before #'jd:xref-clear-fwd-marker-ring))
     #+end_src
 
-*** Flycheck
-    #+begin_src elisp
-      ;; (use-package flycheck)
-    #+end_src
-
 *** eldoc
     Set up eldoc so it does not automatically use the echo buffer, but only do so
     when asked.
@@ -816,6 +785,7 @@ Customize magit a bit to my liking.
       (use-package eldoc
 	:init
 	(defun jd:eldoc ()
+	  "Ask eldoc to show in the echo area."
 	  (interactive)
 	  (when eldoc-mode
 	    (let ((eldoc-display-functions 'eldoc-display-in-echo-area)
@@ -826,7 +796,6 @@ Customize magit a bit to my liking.
 	:custom
 	((eldoc-idle-delay 0.1))
 	:config
-	;; (eldoc-add-command "jd:eldoc")
 	(setq eldoc-message-commands
 	      (make-vector eldoc-message-commands-table-size 0))
 	(eldoc-add-command "jd:eldoc")
@@ -835,122 +804,10 @@ Customize magit a bit to my liking.
 	:demand t)
 
     #+end_src
-    
-*** COMMENT LSP mode
-    The language server protocol is very helpful in making Emacs a modern
-    programming editor. =lsp-mode= is very helpful in this. I think =eglot= is
-    also quite good and elegant, but in the end =lsp-mode= worked better for me.
-
-    There are a bunch of function advising going on here so lsp and dap mode
-    works with tty and my personal taster.
-
-    DAP debug is also used. For C/C++ we can run =(dap-cpptools-setup)= once to
-    setup the adapter.
-
-    #+begin_src elisp
-      (defun jd:save-window-config (args)
-	(window-configuration-to-register 3334)
-	(delete-other-windows))
-      (defun jd:load-window-config (args)
-	(jump-to-register 3334))
-
-      (defun jd:save-window-config-cmd ()
-	(interactive)
-	(jd:save-window-config nil))
-
-      (defun jd:load-window-config-cmd ()
-	(interactive)
-	(jd:load-window-config nil))
-
-      (defun jd:enable-lsp-if-needed ()
-	;; (when (or (derived-mode-p 'c-mode) (derived-mode-p 'c++-mode))
-	;;   (use-package ccls))
-	(unless (string-match-p (regexp-quote "~") (buffer-name))
-	  (lsp)))
-
-      (defun jd:lsp-headerline--arrow-icon ()
-	"Build the arrow icon for headerline breadcrumb."
-	(if (and (window-system) (require 'all-the-icons nil t))
-	    (all-the-icons-material "chevron_right"
-				    :face 'lsp-headerline-breadcrumb-separator-face)
-	  (propertize ">" 'face 'lsp-headerline-breadcrumb-separator-face)))
-
-      (defun jd:lsp-headerline--symbol-icon (kind)
-	"Build the SYMBOL icon for headerline breadcrumb."
-	(when (and (window-system) (require 'lsp-treemacs nil t))
-	  (concat (lsp-headerline--fix-image-background (lsp-treemacs-symbol-icon kind))
-		  " ")))
-
-      (defun jd:lsp-headerline--filename-with-icon (file-path)
-	"Return the filename from FILE-PATH with the extension related icon."
-	(let ((filename (f-filename file-path)))
-	  (-if-let* ((file-ext (f-ext file-path))
-		     (icon (and (window-system)
-				file-ext
-				(require 'lsp-treemacs nil t)
-				(lsp-treemacs-get-icon file-ext))))
-	      (format "%s %s"
-		      (lsp-headerline--fix-image-background icon)
-		      filename)
-	    filename)))
-
-      (use-package lsp-mode
-	:hook
-	((c-mode-common . jd:enable-lsp-if-needed)
-	 (latex-mode . jd:enable-lsp-if-needed)
-	 (TeX-mode . jd:enable-lsp-if-needed)
-	 (bibtex-mode . jd:enable-lsp-if-needed)
-	 (lsp-mode . lsp-enable-which-key-integration))
-	:custom
-	((lsp-keymap-prefix "C-c l")
-	 (lsp-idle-delay 0.1)
-	 (lsp-enable-file-watchers t)
-	 (lsp-file-watch-threshold nil)
-	 (lsp-completion-show-kind nil)
-	 (lsp-headerline-breadcrumb-enable t)
-	 (lsp-clients-clangd-args '("-background-index")))
-	:commands (lsp lsp-deferred)
-	:config
-	(use-package dap-mode
-	  :custom
-	  ((dap-auto-configure-features '(locals breakpoints expressions))
-	   (dap-output-window-max-height 15))
-	  :config
-	  (use-package lsp-ui
-	    :commands lsp-ui-mode
-	    :custom
-	    ((lsp-ui-doc-enable t)
-	     (lsp-ui-doc-show-with-cursor nil)
-	     (lsp-ui-doc-show-with-mouse nil)
-	     (lsp-ui-peek-fontify 'on-demand)))
-	  (require 'dap-ui)
-	  (setq dap-ui-buffer-configurations   `((,dap-ui--locals-buffer . ((side . right) (slot . 1) (window-width . 0.20)))
-						 (,dap-ui--expressions-buffer . ((side . right) (slot . 2) (window-width . 0.20)))
-						 (,dap-ui--sessions-buffer . ((side . right) (slot . 3) (window-width . 0.20)))
-						 (,dap-ui--breakpoints-buffer . ((side . right) (slot . 4) (window-width . 0.20)))
-						 (,dap-ui--debug-window-buffer . ((side . bottom) (slot . 3) (window-width . 0.20)))
-						 (,dap-ui--repl-buffer . ((side . bottom) (slot . 1) (window-height . 0.45)))))
-	  (advice-add 'dap-debug :before #'jd:save-window-config)
-	  (advice-add 'dap-disconnect :after #'jd:load-window-config)
-	  (advice-add 'lsp-headerline--arrow-icon :override #'jd:lsp-headerline--arrow-icon)
-	  (advice-add 'lsp-headerline--symbol-icon :override #'jd:lsp-headerline--symbol-icon)
-	  (advice-add 'lsp-headerline--filename-with-icon :override #'jd:lsp-headerline--filename-with-icon)
-	  (set-face-attribute 'dap-ui-pending-breakpoint-face nil :background "gray13")
-	  (set-face-attribute 'dap-ui-verified-breakpoint-face nil :background "royalblue4"))
-	(require 'dap-cpptools))
-    #+end_src
-    
-**** Other lsp-related
-     #+begin_src elisp
-       (use-package lsp-ivy
-	 :commands lsp-ivy-workspace-symbol)
-
-       (use-package lsp-treemacs
-	 :commands lsp-treemacs-errors-list)
-     #+end_src
-     
-
+  
 *** Eglot
+    =eglot= is an LSP client that uses mostly built-in emacs functionalities.
+    It is much easier to manage than =lsp-mode= and more light-weight.
     #+begin_src elisp
       (use-package project)
       (use-package eglot
@@ -1008,24 +865,18 @@ Customize magit a bit to my liking.
     #+end_src
     
 *** C/C++ programming
-    Clangd language server is used with lsp-mode for C programming.
+    Clangd language server is used with =eglot= for C programming.
     
 **** Clang-format
-Set up clang format so it auto-formats on save, but only for c mode.
-     This is not needed with lsp mode or eglot.
+     Set up clang format so it auto-formats on save, but only for c mode.
+     This is not needed with =lsp-mode= or =eglot=.
 
-#+begin_src elisp
-  (use-package clang-format
-    :custom
-    ((clang-format-style "file")
-	  (clang-format-executable "clang-format-7"))
-	 ;; :hook
-	 ;; (c-mode-common . (lambda ()
-	 ;; 		     (add-hook
-	 ;; 		      (make-local-variable 'before-save-hook)
-	 ;; 		      'clang-format-buffer)))
-	 )
-#+end_src
+     #+begin_src elisp
+       (use-package clang-format
+	 :custom
+	 ((clang-format-style "file")
+	  (clang-format-executable "clang-format-7")))
+     #+end_src
 
 **** Others
      Prefer using =//= instead of =/* */=.
@@ -1040,7 +891,8 @@ Set up clang format so it auto-formats on save, but only for c mode.
       (use-package gdb-mi
 	:custom
 	((gdb-display-io-nopopup t)
-	 (gdb-many-windows t)))
+	 (gdb-many-windows t)
+	 (gdb-restore-window-configuration-after-quit t)))
     #+end_src
 
 *** Others
@@ -1060,6 +912,10 @@ Set up clang format so it auto-formats on save, but only for c mode.
       (defun jd:display-which-func ()
 	(interactive)
 	(message (which-function)))
+      (use-package which-func
+	:demand t
+	:bind
+	(("C-c f" . jd:display-which-func)))
     #+end_src
 
 ** Terminal/Shell
@@ -1111,29 +967,7 @@ Set up clang format so it auto-formats on save, but only for c mode.
 	(define-key input-decode-map (format "\e[%d;5u" (+ i 48)) (kbd (format "C-%d" i))))
     #+end_src
 
-*** Others
-    LSP mode sometimes tries to display icons.
-    #+begin_src elisp
-      (unless window-system
-	(when (featurep 'lsp-mode)
-	  (setq lsp-modeline-code-actions-segments '(count))))
-    #+end_src
-
 ** Buffer/Window Management
-*** COMMENT =purpose=
-    Gives purpose to windows for easy management.
-    #+begin_src elisp
-      (use-package window-purpose
-	:demand t
-	:custom
-	(purpose-use-default-configuration nil)
-	:config
-	(add-to-list 'purpose-user-mode-purposes '(prog-mode . "programming"))
-	(add-to-list 'purpose-user-mode-purposes '(vterm-mode . "term"))
-	(purpose-compile-user-configuration)
-	(purpose-mode))
-    #+end_src
-    
 *** =ace-window=
     Jumping among windows. 
     #+begin_src elisp
@@ -1216,8 +1050,7 @@ Set up clang format so it auto-formats on save, but only for c mode.
 	:commands (sudo-edit sudo-edit-find-file))
     #+end_src
 
-*** 
-    Pyim input method.
+*** Pyim input method.
     #+begin_src elisp
       (use-package pyim)
       (setq default-input-method "pyim")
@@ -1265,6 +1098,13 @@ Set up clang format so it auto-formats on save, but only for c mode.
 	:config
 	(jd:pyim-greatdict-enable))
 
+    #+end_src
+
+*** Burly bookmark management
+    #+begin_src elisp
+      (use-package burly
+	:bind (("C-c b f" . burly-bookmark-frames)
+	       ("C-c b o" . burly-open-bookmark)))
     #+end_src
     
 ** Final Touch
