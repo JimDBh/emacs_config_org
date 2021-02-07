@@ -20,6 +20,7 @@
   - [[#projects][Projects]]
   - [[#version-control][Version Control]]
   - [[#editing][Editing]]
+  - [[#eaf][EAF]]
   - [[#latex][Latex]]
   - [[#org-mode][Org-mode]]
   - [[#programming][Programming]]
@@ -74,7 +75,7 @@
     We are using the develop branch of the straight repo. Also by default
     use straight with use-package.
     #+begin_src elisp
-      (defvar straight-repository-branch "master")
+      (defvar straight-repository-branch "develop")
       (defvaralias 'comp-deferred-compilation-black-list 'comp-deferred-compilation-deny-list)
 
       (defvar bootstrap-version)
@@ -171,10 +172,11 @@
     Do not do deferred compilation on autoload files. This is needed with =straight=
     for now.
     #+begin_src elisp
-      (use-package comp
-	:straight (:type built-in))
-      (add-to-list 'comp-deferred-compilation-deny-list ".*autoload.*")
-      (setq comp-async-report-warnings-errors nil)
+      ;; (use-package comp
+      ;;   :ensure nil
+      ;;   :straight (:type built-in))
+      ;; (add-to-list 'comp-deferred-compilation-deny-list ".*autoload.*")
+      ;; (setq comp-async-report-warnings-errors nil)
     #+end_src
 
 *** History saving
@@ -211,6 +213,11 @@
       (setq enable-recursive-minibuffers  t)
     #+end_src
 
+    Do not show advice warnings. Could be risky, but much less annoying.
+    #+begin_src elisp
+      (setq ad-redefinition-action 'accept)
+    #+end_src
+
 ** Appearance
    Set up theme, mode-line, tab-bar, etc. I usually set them up before
    other packages, since some packages do not play nice with themes and
@@ -226,6 +233,7 @@
     Currently using =doom-modeline=. I also liked =telephone-line= too.
     #+begin_src elisp
       (use-package doom-modeline
+        :disabled
 	:custom
 	(doom-modeline-height 30)
 	(doom-modeline-buffer-file-name-style 'truncate-with-project)
@@ -258,6 +266,7 @@
     I quite like =doom-themes= since they provide a modern look to Emacs.
     #+begin_src elisp
       (use-package doom-themes
+	:disabled
 	:config
 	(load-theme 'doom-one t)
 	(set-face-attribute 'header-line nil :background "#22262b")
@@ -271,6 +280,19 @@
 			    :weight 'normal)
 	(set-face-attribute 'completions-annotations nil
 			    :slant 'normal))
+
+      (use-package doom-themes
+	:disabled
+	:custom-face
+	(eglot-highlight-symbol-face ((t (:background "#20395a" :weight bold))))
+	:config
+	(load-theme 'doom-one-light t)
+	(set-face-attribute 'fringe nil
+			    :inherit 'modeline))
+
+      (use-package leuven-theme
+	:config
+	(load-theme 'leuven))
     #+end_src
 
 *** Font
@@ -355,9 +377,9 @@
      #+end_src
 
 *** Others
-    Use a bar for cursors. Just a personal preference.
+    Use a box for cursors. Just a personal preference.
     #+begin_src elisp
-      (setq-default cursor-type 'bar)
+      (setq-default cursor-type 'box)
     #+end_src
 
 ** Read-Completion
@@ -391,43 +413,46 @@
     Useful functionalities for complete-read.
     #+begin_src elisp
       (use-package consult
-	:bind (;; C-c bindings (mode-specific-map)
-	       ("C-c m" . consult-mode-command)
-	       ("C-c o" . consult-outline)
-	       ("C-c i" . consult-imenu)
-	       ;; C-x bindings (ctl-x-map)
-	       ("C-x M-:" . consult-complex-command)
-	       ("C-x b" . consult-buffer)
-	       ("C-x 4 b" . consult-buffer-other-window)
-	       ("C-x 5 b" . consult-buffer-other-frame)
-	       ("C-x r x" . consult-register)
-	       ("C-x r b" . consult-bookmark)
-	       ;; M-g bindings (goto-map)
-	       ("M-g g" . consult-goto-line)
-	       ("M-g M-g" . consult-goto-line)
-	       ("M-g m" . consult-mark)
-	       ("M-g k" . consult-global-mark)
-	       ("M-g e" . consult-error)
-	       ("M-g f" . consult-flymake)
-	       ;; M-s bindings (search-map)
-	       ("M-s g" . consult-ripgrep)      ;; Alternatives: consult-grep, consult-ripgrep
-	       ("M-s f" . consult-find)          ;; Alternatives: consult-locate, my-fdfind
-	       ("M-s l" . consult-line)
-	       ("M-s m" . consult-multi-occur)
-	       ("M-s k" . consult-keep-lines)
-	       ("M-s u" . consult-focus-lines)
-	       ;; Other bindings
-	       ("M-y" . consult-yank-pop)
-	       ("<help> a" . consult-apropos)
-	       ("C-s" . consult-line))
-	:init
-	(setq register-preview-delay 0
-	      register-preview-function #'consult-register-preview)
-	:config
-	(setq consult-preview-key (kbd "C-l"))
-	(setq consult-narrow-key "<")
-	(autoload 'projectile-project-root "projectile")
-	(setq consult-project-root-function #'projectile-project-root))
+        :bind (;; C-c bindings (mode-specific-map)
+               ("C-c m" . consult-mode-command)
+               ("C-c o" . consult-outline)
+               ("C-c i" . consult-imenu)
+               ;; C-x bindings (ctl-x-map)
+               ("C-x M-:" . consult-complex-command)
+               ("C-x b" . consult-buffer)
+               ("C-x 4 b" . consult-buffer-other-window)
+               ("C-x 5 b" . consult-buffer-other-frame)
+               ("C-x r x" . consult-register)
+               ("C-x r b" . consult-bookmark)
+               ;; M-g bindings (goto-map)
+               ("M-g g" . consult-goto-line)
+               ("M-g M-g" . consult-goto-line)
+               ("M-g m" . consult-mark)
+               ("M-g k" . consult-global-mark)
+               ("M-g e" . consult-error)
+               ("M-g f" . consult-flymake)
+               ;; M-s bindings (search-map)
+               ("M-s g" . consult-ripgrep)      ;; Alternatives: consult-grep, consult-ripgrep
+               ("M-s f" . consult-find)          ;; Alternatives: consult-locate, my-fdfind
+               ("M-s l" . consult-line)
+               ("M-s m" . consult-multi-occur)
+               ("M-s k" . consult-keep-lines)
+               ("M-s u" . consult-focus-lines)
+               ;; Other bindings
+               ("M-y" . consult-yank-pop)
+               ("<help> a" . consult-apropos)
+               ("C-s" . consult-line))
+        :init
+        (setq register-preview-delay 0
+              register-preview-function #'consult-register-preview)
+        :config
+        (setq consult-preview-key (kbd "C-l"))
+        (setq consult-narrow-key "<")
+        (defun jd:current-project-root ()
+          (let ((p (project-current)))
+            (if p
+                (expand-file-name (project-root p)))))
+        (setq consult-project-root-function #'jd:current-project-root))
     #+end_src
 
     Use consult with xref. This is currently only in my local consult repo.
@@ -448,7 +473,7 @@
 	(marginalia-mode)
 	(advice-add #'marginalia-cycle :after
 		    (lambda () (when (bound-and-true-p selectrum-mode) (selectrum-exhibit))))
-	(setq marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil)))
+	(setq marginalia-annotators '(marginalia-annotators-light marginalia-annotators-heavy)))
     #+end_src
 
 *** embark
@@ -465,8 +490,46 @@
 	(embark-collect-mode . embark-consult-preview-minor-mode))
     #+end_src
     
+*** COMMENT Maple minibuffer
+    #+begin_src elisp
+      (use-package maple-minibuffer
+	:straight (:host github :repo "honmaple/emacs-maple-minibuffer")
+	:hook (after-init . maple-minibuffer-mode)
+	:config
+	(setq maple-minibuffer:position-type 'frame-top-center
+	      maple-minibuffer:border-color "gray50"
+	      maple-minibuffer:height nil
+	      maple-minibuffer:width 0.8
+	      maple-minibuffer:cache t)
+
+	(setq maple-minibuffer:action '(read-from-minibuffer read-string)
+	      maple-minibuffer:ignore-action '(evil-ex eval-expression))
+
+	(add-to-list 'maple-minibuffer:ignore-action 'org-schedule)
+	(add-to-list 'maple-minibuffer:ignore-regexp "^helm-")
+
+	;; more custom parameters for frame
+	(defun maple-minibuffer:parameters ()
+	  "Maple minibuffer parameters."
+	  `((height . ,(or maple-minibuffer:height 10))
+	    (width . ,(or maple-minibuffer:width (window-pixel-width)))
+	    (left-fringe . 5)
+	    (right-fringe . 5))))
+    #+end_src
+
+*** Mini frame
+    #+begin_src elisp
+      (use-package mini-frame
+	:custom
+	(mini-frame-show-parameters
+	 '((top . 5)
+	   (width . 0.65)
+	   (left . 0.5)))
+	:config
+	(mini-frame-mode))
+    #+end_src
 ** Projects
-*** Projectile
+*** COMMENT Projectile
     Use projectile to manage projects in Emacs. Maybe will consider using
     =project.el= later. 
     #+begin_src elisp
@@ -474,11 +537,7 @@
 	:bind-keymap
 	("C-c p" . projectile-command-map)
 	:config
-	(projectile-mode)
-	(use-package counsel-projectile
-	  :if (featurep 'counsel)
-	  :config
-	  (counsel-projectile-mode t)))
+	(projectile-mode))
     #+end_src
 
 *** Ripgrep
@@ -530,12 +589,31 @@
     Subtly show diff info on the margin. Works with both terminal and graphic Emacs.
     #+begin_src elisp
       (use-package git-gutter
+	:init
+	(defvar jd--git-gutter-sign "|")
 	:custom
-	((git-gutter:added-sign "|")
-	 (git-gutter:modified-sign "|")
-	 (git-gutter:deleted-sign "|"))
+	((git-gutter:added-sign jd--git-gutter-sign)
+	 (git-gutter:modified-sign jd--git-gutter-sign)
+	 (git-gutter:deleted-sign jd--git-gutter-sign))
 	:config
+	(set-face-attribute 'git-gutter:added nil :bold t)
+	(set-face-attribute 'git-gutter:deleted nil :bold t)
+	(set-face-attribute 'git-gutter:modified nil :bold t)
 	(global-git-gutter-mode))
+
+      (use-package git-gutter-fringe
+	:disabled
+	:if window-system
+	:config
+	(define-fringe-bitmap 'git-gutter-fr:added
+	  [224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224]
+	  nil nil 'center)
+	(define-fringe-bitmap 'git-gutter-fr:modified
+	  [224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224]
+	  nil nil 'center)
+	(define-fringe-bitmap 'git-gutter-fr:deleted
+	  [0 0 0 0 0 0 0 0 0 0 0 0 0 128 192 224 240 248]
+	  nil nil 'center))
     #+end_src
 
 ** Editing
@@ -660,6 +738,19 @@
       (setq column-number-mode t)
     #+end_src
 
+** EAF
+   EAF feels promising, but I don't particularly like it because it constantly
+   flickers when I resize windows, and it does not just work without all these
+   dependencies.
+   #+begin_src elisp
+     (use-package epc)
+     (use-package eaf
+       :after epc
+       :straight (:files
+		  (:defaults "eaf.py" "setup.py" "core" "app" "docker" "install-eaf.sh")
+		  :no-byte-compile t))
+   #+end_src
+
 ** Latex
    Use =auctex=.
    #+begin_src elisp
@@ -680,7 +771,10 @@
       (use-package org
 	:defer t
 	:custom
-	(org-return-follows-link t))
+	(org-return-follows-link t)
+	(org-imenu-depth 4)
+	:config
+	(setq org-format-latex-options (plist-put org-format-latex-options :scale 1.6)))
     #+end_src
 
 *** TOC
@@ -811,9 +905,7 @@
     #+begin_src elisp
       (use-package project)
       (use-package eglot
-	:straight (:no-native-compile t)
-	:custom-face
-	(eglot-highlight-symbol-face ((t (:background "#20395a" :weight bold))))
+	:straight (:no-native-compile t)    
 	:custom
 	((eglot-send-changes-idle-time 0.2))
 	:hook
@@ -1052,8 +1144,7 @@
 
 *** Pyim input method.
     #+begin_src elisp
-      (use-package pyim)
-      (setq default-input-method "pyim")
+      (defvar jd--loaded-pyim-dict nil)
 
       (defun jd:pyim-basedict-enable ()
 	"Add basedict to pyim."
@@ -1071,10 +1162,6 @@
 			 :elpa t))
 	      (message "pyim 没有安装，pyim-basedict 启用失败。")))))
 
-      (use-package pyim-basedict
-	:config
-	(jd:pyim-basedict-enable))
-
       (defun jd:pyim-greatdict-enable ()
 	"Add greatdict to pyim."
 	(interactive)
@@ -1091,20 +1178,34 @@
 			 :elpa t))
 	      (message "pyim 没有安装，pyim-greatdict 启用失败。")))))
 
-      (use-package pyim-greatdict
-	:straight (:type git
-			 :host github
-			 :repo "tumashu/pyim-greatdict")
-	:config
-	(jd:pyim-greatdict-enable))
-
+      (use-package pyim
+	:init
+	(setq default-input-method "pyim")
+	(defun jd:load-pyim-dict ()
+	  (interactive)
+	  (when (not jd--loaded-pyim-dict)
+	    (use-package pyim-basedict)
+	    (use-package pyim-greatdict
+	      :straight (:type git
+			       :host github
+			       :repo "tumashu/pyim-greatdict"))
+	    (jd:pyim-basedict-enable)
+	    (jd:pyim-greatdict-enable)
+	    (setq jd--loaded-pyim-dict t)))
+	(when window-system
+	  (setq pyim-page-tooltip 'posframe))
+	:hook
+	((input-method-activate . jd:load-pyim-dict)))
     #+end_src
 
 *** Burly bookmark management
     #+begin_src elisp
       (use-package burly
 	:bind (("C-c b f" . burly-bookmark-frames)
-	       ("C-c b o" . burly-open-bookmark)))
+	       ("C-c b o" . burly-open-bookmark)
+	       ("C-c b w" . burly-bookmark-windows))
+	:config
+	(bookmark-maybe-load-default-file))
     #+end_src
     
 ** Final Touch
