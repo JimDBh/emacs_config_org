@@ -283,8 +283,6 @@
 
       (use-package doom-themes
 	:disabled
-	:custom-face
-	(eglot-highlight-symbol-face ((t (:background "#20395a" :weight bold))))
 	:config
 	(load-theme 'doom-one-light t)
 	(set-face-attribute 'fringe nil
@@ -292,6 +290,7 @@
 
       (use-package leuven-theme
 	:config
+	(setq-default left-fringe-width 8)
 	(load-theme 'leuven))
     #+end_src
 
@@ -489,45 +488,25 @@
 	:hook
 	(embark-collect-mode . embark-consult-preview-minor-mode))
     #+end_src
-    
-*** COMMENT Maple minibuffer
-    #+begin_src elisp
-      (use-package maple-minibuffer
-	:straight (:host github :repo "honmaple/emacs-maple-minibuffer")
-	:hook (after-init . maple-minibuffer-mode)
-	:config
-	(setq maple-minibuffer:position-type 'frame-top-center
-	      maple-minibuffer:border-color "gray50"
-	      maple-minibuffer:height nil
-	      maple-minibuffer:width 0.8
-	      maple-minibuffer:cache t)
-
-	(setq maple-minibuffer:action '(read-from-minibuffer read-string)
-	      maple-minibuffer:ignore-action '(evil-ex eval-expression))
-
-	(add-to-list 'maple-minibuffer:ignore-action 'org-schedule)
-	(add-to-list 'maple-minibuffer:ignore-regexp "^helm-")
-
-	;; more custom parameters for frame
-	(defun maple-minibuffer:parameters ()
-	  "Maple minibuffer parameters."
-	  `((height . ,(or maple-minibuffer:height 10))
-	    (width . ,(or maple-minibuffer:width (window-pixel-width)))
-	    (left-fringe . 5)
-	    (right-fringe . 5))))
-    #+end_src
 
 *** Mini frame
     #+begin_src elisp
       (use-package mini-frame
 	:custom
 	(mini-frame-show-parameters
-	 '((top . 5)
-	   (width . 0.65)
-	   (left . 0.5)))
+	 '((top . 0)
+	   (width . 0.85)
+	   (left . 0.5)
+	   (internal-border-width . 1)))
 	:config
+	(setq mini-frame-ignore-functions '(y-or-n-p yes-or-no-p))
+	(setq mini-frame-internal-border-color "#gray60")
+	(setq mini-frame-color-shift-step 10)
+	(when (facep 'child-frame-border)
+	  (set-face-attribute 'child-frame-border nil :background "gray60"))
 	(mini-frame-mode))
     #+end_src
+
 ** Projects
 *** COMMENT Projectile
     Use projectile to manage projects in Emacs. Maybe will consider using
@@ -662,7 +641,10 @@
     #+begin_src elisp
       (use-package company-box
 	:if window-system
-	:hook (company-mode . company-box-mode))
+	:hook (company-mode . company-box-mode)
+	:config
+	(setq company-box-doc-delay 1.5)
+	(setq company-box-doc-frame-parameters '((internal-border-width . 1))))
     #+end_src
 
 *** Spell Check
@@ -912,7 +894,9 @@
 	((c-mode . eglot-ensure)
 	 (c++-mode . eglot-ensure))
 	:config
-	(add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd")))
+	(add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd"))
+	(set-face-attribute 'eglot-highlight-symbol-face nil :box '(:line-width -1))
+	(set-face-attribute 'eglot-highlight-symbol-face nil :inherit nil))
     #+end_src
 
 *** Compiling
