@@ -35,8 +35,8 @@
   This org file contains my Emacs configurations. Once tangled it "compiles" into
   init.el (and possibly early-init.el, depending on the Emacs version), which can
   be used by Emacs at startup. Parts of the file are inspired by Andrey's dot-file
-  available at [[https://github.com/andreyorst/dotfiles][Github]]. 
-
+  available at [[https://github.com/andreyorst/dotfiles][Github]].
+  
 * early-init.el
   :properties:
   :header-args: :tangle "./early-init.el"
@@ -70,7 +70,7 @@
 *** Straight.el
     Straight.el helps managing packages in a very convenient yet
     consistent way. Bootstrap it so we can use it later to require
-    packages. 
+    packages.
 
     We are using the develop branch of the straight repo. Also by default
     use straight with use-package.
@@ -92,7 +92,7 @@
         (load bootstrap-file nil 'nomessage))
 
       (setq straight-cache-autoloads t)
-      (setq straight-disable-native-compilation t)
+      (setq straight-disable-native-compilation nil)
     #+end_src
 
 *** Use-package.el
@@ -100,7 +100,7 @@
 
     #+begin_src elisp
       (straight-use-package 'use-package)
-      (setq use-package-verbose nil)
+      (setq use-package-verbose t)
       (setq straight-use-package-by-default t)
     #+end_src
 
@@ -108,10 +108,11 @@
     Do not load package.el since we are not using it.
     #+begin_src elisp
       (setq package-enable-at-startup nil)
+      (setq byte-compile-warnings '(cl-functions))
     #+end_src
 
 ** Early tweaks on appearance
-   No menu, tool, scroll bars, please. 
+   No menu, tool, scroll bars, please.
    #+begin_src elisp
      (tool-bar-mode -1)
      (menu-bar-mode -1)
@@ -130,7 +131,7 @@
   :end:
 
   Init.el should be placed in =user-emacs-directory=. By default it's
-  in =~/.emacs.d/=. 
+  in =~/.emacs.d/=.
 
 ** Header
    #+begin_src elisp
@@ -157,7 +158,7 @@
       (unless (featurep 'early-init)
         (let ((early-init-file (expand-file-name "early-init.el" user-emacs-directory)))
           (when (file-exists-p early-init-file) (load early-init-file))))
-    #+end_src 
+    #+end_src
 
     Define a separate file for customized variables. Create the file if it does
     not exist.  If anything is deleted in =init.el=, the saved customized values
@@ -182,7 +183,10 @@
 *** History saving
     Using recentf-mode. Because we are using =prescient= so no need for =savehist-mode=.
     #+begin_src elisp
-      (recentf-mode 1)
+      (use-package recentf
+        :config
+        (setq recentf-filename-handlers '(abbreviate-file-name))
+        (recentf-mode 1))
     #+end_src
 
 *** Other
@@ -191,14 +195,14 @@
       (setq recenter-positions '(middle 0.15 0.85))
     #+end_src
 
-    The default scroll amount is too fast for me. 
+    The default scroll amount is too fast for me.
     #+begin_src elisp
       (setq mouse-wheel-scroll-amount
             '(3 ((shift) . 1) ((meta)) ((control) . text-scale))
             mouse-wheel-progressive-speed nil)
     #+end_src
 
-    Resize by pixels. 
+    Resize by pixels.
     #+begin_src elisp
       (setq frame-resize-pixelwise t)
     #+end_src
@@ -218,41 +222,45 @@
       (setq ad-redefinition-action 'accept)
     #+end_src
 
+    Do not ask me if a process is running.
+    #+begin_src elisp
+      (setq confirm-kill-processes nil)
+    #+end_src
+
 ** Appearance
    Set up theme, mode-line, tab-bar, etc. I usually set them up before
    other packages, since some packages do not play nice with themes and
    may get reset if a theme is loaded after the package is initialized.
 
 *** All the icons
-    Use icons in Emacs for a better look. 
+    Use icons in Emacs for a better look.
     #+begin_src elisp
       (use-package all-the-icons)
     #+end_src
 
-*** Mode-line
+*** Modeline
     Currently using =doom-modeline=. I also liked =telephone-line= too.
     #+begin_src elisp
       (use-package doom-modeline
-        :disabled
         :custom
         (doom-modeline-height 30)
         (doom-modeline-buffer-file-name-style 'truncate-with-project)
         :config
         ;; do not display the host name, it's often too long.
         (doom-modeline-def-segment remote-host-no-host
-          "Hostname for remote buffers."
-          (when default-directory
-            (when (file-remote-p default-directory 'host)
-              (propertize
-               " @"
-               'face (if (doom-modeline--active)
-                         'doom-modeline-host
-                       'mode-line-inactive)))))
+                                   "Hostname for remote buffers."
+                                   (when default-directory
+                                     (when (file-remote-p default-directory 'host)
+                                       (propertize
+                                        " @"
+                                        'face (if (doom-modeline--active)
+                                                  'doom-modeline-host
+                                                'mode-line-inactive)))))
         (doom-modeline-def-modeline 'no-host-main
-          '(bar workspace-name window-number modals matches buffer-info
-                remote-host-no-host buffer-position word-count parrot selection-info)
-          '(objed-state persp-name battery grip irc mu4e gnus github debug
-                        lsp input-method indent-info process vcs checker misc-info))
+                                    '(bar workspace-name window-number modals matches buffer-info
+                                          remote-host-no-host buffer-position word-count parrot selection-info)
+                                    '(objed-state persp-name battery grip irc mu4e gnus github debug
+                                                  lsp input-method indent-info process vcs checker misc-info))
 
         (defun setup-custom-doom-modeline ()
           "Setup the customized modeline for doom modeline."
@@ -260,10 +268,15 @@
 
         (add-hook 'doom-modeline-mode-hook 'setup-custom-doom-modeline)
         (doom-modeline-mode 1))
+
+      (use-package smart-mode-line
+        :disabled
+        :config
+        (sml/setup))
     #+end_src
 
 *** Themes
-    I quite like =doom-themes= since they provide a modern look to Emacs.
+    I'm constantly changing themes as it turns out.
     #+begin_src elisp
       (use-package doom-themes
         :disabled
@@ -284,14 +297,31 @@
       (use-package doom-themes
         :disabled
         :config
-        (load-theme 'doom-one-light t)
-        (set-face-attribute 'fringe nil
-                            :inherit 'modeline))
+        (load-theme 'doom-one-light t))
 
       (use-package leuven-theme
+        :disabled
         :config
-        (setq-default left-fringe-width 8)
+        (setq-default left-fringe-width 6)
         (load-theme 'leuven))
+
+      (use-package kaolin-themes
+        :disabled
+        :config
+        (load-theme 'kaolin-light))
+
+      (use-package modus-themes
+        :init
+        ;; Add all your customizations prior to loading the themes
+        ;; (setq modus-themes-slanted-constructs t
+              ;; modus-themes-bold-constructs nil)
+
+        ;; Load the theme files before enabling a theme (else you get an error).
+        (modus-themes-load-themes)
+        :config
+        ;; Load the theme of your choice:
+        (modus-themes-load-operandi) ;; OR (modus-themes-load-vivendi)
+        :bind ("<f5>" . modus-themes-toggle))
     #+end_src
 
 *** Font
@@ -379,6 +409,7 @@
     Use a box for cursors. Just a personal preference.
     #+begin_src elisp
       (setq-default cursor-type 'box)
+      (setq-default cursor-in-non-selected-windows nil)
     #+end_src
 
 ** Read-Completion
@@ -389,7 +420,7 @@
         :config
         (prescient-persist-mode +1))
     #+end_src
-    
+
 *** Selectrum
     Use =selectrum= for incremental completion.
     #+begin_src elisp
@@ -400,6 +431,19 @@
         (selectrum-mode +1))
     #+end_src
 
+    Use =posframe= for displaying candidates
+    #+begin_src elisp
+      (use-package posframe
+        :config
+        (when (facep 'child-frame-border)
+          (set-face-attribute 'child-frame-border nil :background "gray60")))
+
+      (add-to-list 'load-path "~/.emacs.d/lisp/")
+      (require 'selectrum-posframe)
+      (selectrum-posframe-mode 1)
+      (setq posframe-inhibit-double-buffering t)
+    #+end_src
+
     Use prescient for ordering.
     #+begin_src elisp
       (use-package selectrum-prescient
@@ -407,7 +451,7 @@
         :config
         (selectrum-prescient-mode +1))
     #+end_src
-    
+
 *** Consult
     Useful functionalities for complete-read.
     #+begin_src elisp
@@ -451,12 +495,16 @@
           (let ((p (project-current)))
             (if p
                 (expand-file-name (project-root p)))))
-        (setq consult-project-root-function #'jd:current-project-root))
+        (setq consult-project-root-function #'jd:current-project-root)
+        (when (>= emacs-major-version 27)
+          (setq xref-show-definitions-function #'consult-xref))
+        (setq xref-show-xrefs-function #'consult-xref))
     #+end_src
 
     Use consult with xref. This is currently only in my local consult repo.
     #+begin_src elisp
       (use-package consult-xref
+        :disabled
         :straight consult
         :config
         (setup-consult-xref))
@@ -489,19 +537,21 @@
         (embark-collect-mode . embark-consult-preview-minor-mode))
     #+end_src
 
-*** Mini frame
+*** COMMENT Mini frame
     #+begin_src elisp
       (use-package mini-frame
         :custom
         (mini-frame-show-parameters
-         '((top . 0)
-           (width . 0.85)
+         '((top . -1)
+           (width . 0.8)
            (left . 0.5)
+           (height . 11)
            (internal-border-width . 1)))
         :config
-        ;; (setq mini-frame-ignore-functions '(y-or-n-p yes-or-no-p))
-        (setq mini-frame-internal-border-color "#gray60")
-        (setq mini-frame-color-shift-step 10)
+        (setq mini-frame-ignore-functions '(y-or-n-p yes-or-no-p read-passwd org-read-date))
+        (setq mini-frame-internal-border-color "gray60")
+        (setq mini-frame-color-shift-step 0)
+        (setq mini-frame-resize 'grow-only)
         (when (facep 'child-frame-border)
           (set-face-attribute 'child-frame-border nil :background "gray60"))
         (mini-frame-mode))
@@ -510,7 +560,7 @@
 ** Projects
 *** COMMENT Projectile
     Use projectile to manage projects in Emacs. Maybe will consider using
-    =project.el= later. 
+    =project.el= later.
     #+begin_src elisp
       (use-package projectile
         :bind-keymap
@@ -520,7 +570,7 @@
     #+end_src
 
 *** Ripgrep
-    Ripgrep is very fast and convenient when searching in a project. 
+    Ripgrep is very fast and convenient when searching in a project.
     #+begin_src elisp
       (use-package ripgrep)
     #+end_src
@@ -544,7 +594,7 @@
     #+end_src
 
 ** Version Control
-   Use =magit= for version control (of course). 
+   Use =magit= for version control (of course).
 
 *** Magit
     #+begin_src elisp
@@ -552,8 +602,9 @@
       (use-package posframe)
       (use-package transient-posframe
         :config
-        (setq transient-posframe-poshandler #'posframe-poshandler-frame-top-center)
+        (setq transient-posframe-poshandler #'posframe-poshandler-frame-bottom-center)
         (setq transient-posframe-min-height 0)
+        (setq transient-posframe-refresh 0.1)
         (transient-posframe-mode))
     #+end_src
     Customize magit a bit to my liking.
@@ -594,8 +645,6 @@
         (global-git-gutter-mode))
 
       (use-package git-gutter-fringe
-        :disabled
-        :if window-system
         :config
         (define-fringe-bitmap 'git-gutter-fr:added
           [224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224]
@@ -605,7 +654,14 @@
           nil nil 'center)
         (define-fringe-bitmap 'git-gutter-fr:deleted
           [0 0 0 0 0 0 0 0 0 0 0 0 0 128 192 224 240 248]
-          nil nil 'center))
+          nil nil 'center)
+        (when (featurep 'modus-themes)
+          (set-face-attribute 'git-gutter-fr:added nil :foreground (face-attribute 'modus-themes-fringe-green :background))
+          (set-face-attribute 'git-gutter-fr:deleted nil :foreground (face-attribute 'modus-themes-fringe-red :background))
+          (set-face-attribute 'git-gutter-fr:modified nil :foreground (face-attribute 'modus-themes-fringe-yellow :background))
+          (set-face-attribute 'git-gutter-fr:added nil :background (face-attribute 'fringe :background))
+          (set-face-attribute 'git-gutter-fr:deleted nil :background (face-attribute 'fringe :background))
+          (set-face-attribute 'git-gutter-fr:modified nil :background (face-attribute 'fringe :background))))
     #+end_src
 
 ** Editing
@@ -616,7 +672,7 @@
         :config
         (yas-global-mode t))
     #+end_src
-    
+
 *** Company
     Complete anything!
 
@@ -663,7 +719,7 @@
 *** Spell Check
     Use flyspell for spell check. =wucuo.el= helps improving things for
     on-the-fly checking, but can be annoying at times for programming, as
-    we do not always use (combinations of) full words. 
+    we do not always use (combinations of) full words.
 
     #+begin_src elisp
       (use-package wucuo
@@ -691,7 +747,7 @@
     #+end_src
 
 *** Undo-tree
-    Helps with a visualized undo tree. 
+    Helps with a visualized undo tree.
 
     #+begin_src elisp
       (use-package undo-tree
@@ -704,8 +760,7 @@
     braces (automatically add a newline there) and c comment pairs.
 
     #+begin_src elisp
-      (use-package smartparens-config
-        :straight (smartparens)
+      (use-package smartparens
         :config
         (sp-with-modes
             '(c-mode c++-mode)
@@ -727,7 +782,7 @@
     #+end_src
 
 *** Others
-    Set the fill column width to be 80 for the general case. 
+    Set the fill column width to be 80 for the general case.
     #+begin_src elisp
       (setq-default fill-column 80)
       (setq column-number-mode t)
@@ -760,26 +815,41 @@
 
 *** Install orgmode
     Emacs comes with a default yet quite old version of org. Install the new one.
-    =straight.el= helps with installing it at the first time. 
+    =straight.el= helps with installing it at the first time.
 
     #+begin_src elisp
       (use-package org
-        :defer t
+        :commands
+        (org-mode org-agenda org-store-link)
+        :mode
+        (("\\.org_archive\\'" . org-mode)
+         ("\\.org\\'" . org-mode))
         :custom
         (org-return-follows-link t)
         (org-imenu-depth 4)
         :config
         (require 'org-tempo)
-        (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.6)))
+        (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.6))
+        (setq org-todo-keywords
+              '((sequence "TODO" "DOING" "WAITING" "|" "DONE" "ABANDONED"))))
     #+end_src
 
 *** TOC
-    Auto insert a TOC when saving. Very helpful for GitHub org files. 
+    Auto insert a TOC when saving. Very helpful for GitHub org files.
     #+begin_src elisp
       (use-package toc-org
         :hook
         (org-mode . toc-org-mode))
     #+end_src
+
+*** Org superstar
+    Beautify the bullets
+    #+begin_src elisp
+      (use-package org-superstar
+        :hook
+        ((org-mode . (lambda ()(org-superstar-mode 1)))))
+    #+end_src
+
 
 ** Programming
    Setups for programming tools.
@@ -815,7 +885,7 @@
     new marker ring here to allow tracing forward after going back (like a
     redo).
     #+begin_src elisp
-      
+
     #+end_src
 
     Finally set up xref with the above tweaks. The key mappings are a bit
@@ -887,6 +957,7 @@
         :custom
         ((eldoc-idle-delay 0.1))
         :config
+        (load-file "~/.emacs.d/straight/repos/eldoc/eldoc.el")
         (setq eldoc-message-commands
               (make-vector eldoc-message-commands-table-size 0))
         (eldoc-add-command "jd:eldoc")
@@ -894,15 +965,19 @@
         (("C-c h" . jd:eldoc))
         :demand t)
 
+      (use-package eldoc-box
+        :after eldoc
+        :hook
+        ((eldoc-mode . eldoc-box-hover-at-point-mode)))
     #+end_src
-  
+
 *** Eglot
     =eglot= is an LSP client that uses mostly built-in emacs functionalities.
     It is much easier to manage than =lsp-mode= and more light-weight.
     #+begin_src elisp
       (use-package project)
       (use-package eglot
-        :straight (:no-native-compile t)    
+        :straight (:no-native-compile t)
         :custom
         ((eglot-send-changes-idle-time 0.2))
         :hook
@@ -954,10 +1029,10 @@
         (funcall f proc (xterm-color-filter string)))
       (advice-add 'compilation-filter :around #'jd:advice-compilation-filter)
     #+end_src
-    
+
 *** C/C++ programming
     Clangd language server is used with =eglot= for C programming.
-    
+
 **** Clang-format
      Set up clang format so it auto-formats on save, but only for c mode.
      This is not needed with =lsp-mode= or =eglot=.
@@ -1038,7 +1113,7 @@
       (unless window-system
         (xterm-mouse-mode t)
         (setq mouse-sel-mode t
-              xterm-set-window-title t))
+              xterm-set-window-title nil))
     #+end_src
 
 *** Clipetty
@@ -1049,7 +1124,7 @@
         :bind
         ("M-w" . clipetty-kill-ring-save))
     #+end_src
-    
+
 *** Keys
     For company mode, we need =C-0= to =C-9=, but their codes are not
     defined in the key-map.
@@ -1060,7 +1135,7 @@
 
 ** Buffer/Window Management
 *** =ace-window=
-    Jumping among windows. 
+    Jumping among windows.
     #+begin_src elisp
       (use-package ace-window
         :bind
@@ -1068,7 +1143,7 @@
     #+end_src
 
 *** Window movements
-    Use Shift + arrows to move among windows. 
+    Use Shift + arrows to move among windows.
     #+begin_src elisp
       (windmove-default-keybindings)
     #+end_src
@@ -1090,7 +1165,7 @@
       (setq window-resize-pixelwise t)
     #+end_src
 
-    Define the function to fit buffer width with constraints. 
+    Define the function to fit buffer width with constraints.
     #+begin_src elisp
       (defcustom jd--fit-width-min-ratio 0.2 "Minimum width of a window to fit to buffer.")
       (defcustom jd--fit-width-max-ratio 0.5 "Maximum width of a window to fit to buffer.")
@@ -1108,10 +1183,10 @@
       (defcustom jd--fixed-width-ratio 0.4 "Fixed width ratio for sidewindows")
     #+end_src
 
-    Set =display-buffer-alist= to display certain buffers in side windows. 
+    Set =display-buffer-alist= to display certain buffers in side windows.
     #+begin_src elisp
-      (setq display-buffer-alist 
-            `(("\\*\\(.*[hH]elp\\|undo-tree.*\\)\\*" 
+      (setq display-buffer-alist
+            `(("\\*\\(.*[hH]elp\\|undo-tree.*\\)\\*"
                display-buffer-in-side-window
                (side . right)
                (slot . 0)
@@ -1126,7 +1201,7 @@
 
 ** Miscellaneous Packages
 *** Which-key mode
-    Displays the key bindings after a prefix. 
+    Displays the key bindings after a prefix.
 
     #+begin_src elisp
       (use-package which-key
@@ -1135,10 +1210,10 @@
 
       (use-package which-key-posframe
         :config
-        (setq which-key-posframe-poshandler #'posframe-poshandler-frame-top-center)
+        (setq which-key-posframe-poshandler #'posframe-poshandler-frame-bottom-center)
         (which-key-posframe-mode))
     #+end_src
-    
+
 *** Sudo edit
     Makes it easier to edit files that needs sudo.
 
@@ -1197,8 +1272,9 @@
             (jd:pyim-basedict-enable)
             (jd:pyim-greatdict-enable)
             (setq jd--loaded-pyim-dict t)))
-        (when window-system
-          (setq pyim-page-tooltip 'posframe))
+        (if window-system
+            (setq pyim-page-tooltip 'posframe)
+          (setq pyim-page-tooltip 'popup))
         :hook
         ((input-method-activate . jd:load-pyim-dict)))
     #+end_src
@@ -1217,7 +1293,14 @@
     #+begin_src elisp
       (setq auth-sources '((:source "~/.authinfo.gpg")))
     #+end_src
-    
+
+*** Restart emacs
+    Makes it much simpler to just restart emacs.
+    #+begin_src elisp
+      (use-package restart-emacs
+        :commands restart-emacs)
+    #+end_src
+
 ** Final Touch
 *** Thresholds
     Set gc thres back to a more normal value.
@@ -1250,4 +1333,3 @@
    #  LocalWords:  Init init Andrey's parens Smartparens flyspell gud gc lsp
    #  LocalWords:  Magithub treemacs config Swiper swiper thres Clipetty
    #  LocalWords:  TOC
-
