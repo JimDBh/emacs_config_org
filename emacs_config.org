@@ -227,6 +227,10 @@
       (setq confirm-kill-processes nil)
     #+end_src
 
+    #+begin_src elisp
+      (setq-default indent-tabs-mode nil)
+    #+end_src
+
 ** Appearance
    Set up theme, mode-line, tab-bar, etc. I usually set them up before
    other packages, since some packages do not play nice with themes and
@@ -267,12 +271,20 @@
           (doom-modeline-set-modeline 'no-host-main 'default))
 
         (add-hook 'doom-modeline-mode-hook 'setup-custom-doom-modeline)
-        (doom-modeline-mode 1))
+        ;; (doom-modeline-set-modeline 'no-host-main t)
+        (doom-modeline-mode))
 
       (use-package smart-mode-line
         :disabled
         :config
         (sml/setup))
+
+      (use-package moody
+        :disabled
+        :config
+        (setq x-underline-at-descent-line t)
+        (moody-replace-mode-line-buffer-identification)
+        (moody-replace-vc-mode))
     #+end_src
 
 *** Themes
@@ -315,19 +327,34 @@
         ;; Add all your customizations prior to loading the themes
         ;; (setq modus-themes-slanted-constructs t
               ;; modus-themes-bold-constructs nil)
-
+        (setq modus-themes-scale-headings t
+              modus-themes-prompts 'subtle-accented
+              modus-themes-slanted-constructs t
+              modus-themes-completions 'opinionated)
         ;; Load the theme files before enabling a theme (else you get an error).
         (modus-themes-load-themes)
         :config
         ;; Load the theme of your choice:
         (modus-themes-load-operandi) ;; OR (modus-themes-load-vivendi)
+        ;; (load-theme 'modus-operandi)
         :bind ("<f5>" . modus-themes-toggle))
     #+end_src
+
+    # Activate doom modeline after the theme is loaded.
+    # #+begin_src elisp
+    #   (when (featurep 'doom-modeline)
+    #     (when (featurep 'modus-themes)
+    #         (add-hook 'modus-themes-after-load-theme-hook
+    #                   (lambda ()
+    #                     (doom-modeline-mode -1)
+    #                     (doom-modeline-mode t)
+    #                     (setup-custom-doom-modeline)))))
+    # #+end_src
 
 *** Font
     The Fira font works very well both in terminal and in graphic emacs.
     #+begin_src elisp
-      (add-to-list 'default-frame-alist '(font . "Fira Code-12"))
+      (add-to-list 'default-frame-alist '(font . "Fira Code-11"))
     #+end_src
 
 *** Tabs
@@ -425,6 +452,9 @@
     Use =selectrum= for incremental completion.
     #+begin_src elisp
       (use-package selectrum
+        :custom
+        ((selectrum-group-format nil)
+         (selectrum-count-style 'current/matches))
         :bind
         (("C-c C-r" . selectrum-repeat))
         :config
@@ -436,12 +466,13 @@
       (use-package posframe
         :config
         (when (facep 'child-frame-border)
-          (set-face-attribute 'child-frame-border nil :background "gray60")))
+          (set-face-attribute 'child-frame-border nil :background "gray60"))
+        (setq posframe-inhibit-double-buffering nil))
 
-      (add-to-list 'load-path "~/.emacs.d/lisp/")
-      (require 'selectrum-posframe)
-      (selectrum-posframe-mode 1)
-      (setq posframe-inhibit-double-buffering t)
+      ;; (add-to-list 'load-path "~/.emacs.d/lisp/")
+      ;; (require 'selectrum-posframe)
+      ;; (selectrum-posframe-mode 1)
+      ;; ;; 
     #+end_src
 
     Use prescient for ordering.
@@ -537,7 +568,7 @@
         (embark-collect-mode . embark-consult-preview-minor-mode))
     #+end_src
 
-*** COMMENT Mini frame
+*** Mini frame
     #+begin_src elisp
       (use-package mini-frame
         :custom
@@ -598,9 +629,14 @@
 
 *** Magit
     #+begin_src elisp
-      (use-package transient)
-      (use-package posframe)
+      (use-package transient
+        :custom
+        ((transient-display-buffer-action '(display-buffer-below-selected))
+         (transient-mode-line-format '("%e" mode-line-front-space mode-line-buffer-identification))
+         (transient-show-popup 0.2)))
+
       (use-package transient-posframe
+        :if window-system
         :config
         (setq transient-posframe-poshandler #'posframe-poshandler-frame-bottom-center)
         (setq transient-posframe-min-height 0)
@@ -642,26 +678,42 @@
         (set-face-attribute 'git-gutter:added nil :bold t)
         (set-face-attribute 'git-gutter:deleted nil :bold t)
         (set-face-attribute 'git-gutter:modified nil :bold t)
+        (when (featurep 'modus-themes)
+          (defun jd:fix-git-gutter ()
+            (interactive)
+            (set-face-attribute 'git-gutter:added nil :foreground (face-attribute 'modus-themes-fringe-green :background))
+            (set-face-attribute 'git-gutter:deleted nil :foreground (face-attribute 'modus-themes-fringe-red :background))
+            (set-face-attribute 'git-gutter:modified nil :foreground (face-attribute 'modus-themes-fringe-yellow :background))
+            (set-face-attribute 'git-gutter:added nil :background (face-attribute 'fringe :background))
+            (set-face-attribute 'git-gutter:deleted nil :background (face-attribute 'fringe :background))
+            (set-face-attribute 'git-gutter:modified nil :background (face-attribute 'fringe :background)))
+          (add-hook 'modus-themes-after-load-theme-hook 'jd:fix-git-gutter)
+          (jd:fix-git-gutter))
         (global-git-gutter-mode))
 
       (use-package git-gutter-fringe
+        :if window-system
         :config
         (define-fringe-bitmap 'git-gutter-fr:added
-          [224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224]
+          [15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15]
           nil nil 'center)
         (define-fringe-bitmap 'git-gutter-fr:modified
-          [224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224 224]
+          [15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15 15]
           nil nil 'center)
         (define-fringe-bitmap 'git-gutter-fr:deleted
-          [0 0 0 0 0 0 0 0 0 0 0 0 0 128 192 224 240 248]
+          [0 0 0 0 0 0 0 0 0 0 0 1 3 7 15 31 63 127]
           nil nil 'center)
         (when (featurep 'modus-themes)
-          (set-face-attribute 'git-gutter-fr:added nil :foreground (face-attribute 'modus-themes-fringe-green :background))
-          (set-face-attribute 'git-gutter-fr:deleted nil :foreground (face-attribute 'modus-themes-fringe-red :background))
-          (set-face-attribute 'git-gutter-fr:modified nil :foreground (face-attribute 'modus-themes-fringe-yellow :background))
-          (set-face-attribute 'git-gutter-fr:added nil :background (face-attribute 'fringe :background))
-          (set-face-attribute 'git-gutter-fr:deleted nil :background (face-attribute 'fringe :background))
-          (set-face-attribute 'git-gutter-fr:modified nil :background (face-attribute 'fringe :background))))
+          (defun jd:fix-git-gutter-fr ()
+            (interactive)
+            (set-face-attribute 'git-gutter-fr:added nil :foreground (face-attribute 'modus-themes-fringe-green :background))
+            (set-face-attribute 'git-gutter-fr:deleted nil :foreground (face-attribute 'modus-themes-fringe-red :background))
+            (set-face-attribute 'git-gutter-fr:modified nil :foreground (face-attribute 'modus-themes-fringe-yellow :background))
+            (set-face-attribute 'git-gutter-fr:added nil :background (face-attribute 'fringe :background))
+            (set-face-attribute 'git-gutter-fr:deleted nil :background (face-attribute 'fringe :background))
+            (set-face-attribute 'git-gutter-fr:modified nil :background (face-attribute 'fringe :background)))
+          (add-hook 'modus-themes-after-load-theme-hook 'jd:fix-git-gutter-fr)
+          (jd:fix-git-gutter-fr)))
     #+end_src
 
 ** Editing
@@ -703,17 +755,31 @@
          (gud-mode . jd:disable-company-idle-delay))
         :config
         (dotimes (i 10)
-          (define-key company-active-map (kbd (format "C-%d" i)) 'company-complete-number)))
+          (define-key company-active-map (kbd (format "C-%d" i)) 'company-complete-number))
+        (setq company-format-margin-function #'company-detect-icons-margin))
     #+end_src
 
     Use =company-box= if we are not using TTY Emacs.
     #+begin_src elisp
       (use-package company-box
+        :disabled
         :if window-system
         :hook (company-mode . company-box-mode)
         :config
         (setq company-box-doc-delay 1.5)
         (setq company-box-doc-frame-parameters '((internal-border-width . 1))))
+    #+end_src
+
+    Use =company-posframe= instead.
+    #+begin_src elisp
+      (use-package company-posframe
+        :if window-system
+        :custom
+        ((company-posframe-quickhelp-delay nil)
+         (company-posframe-show-indicator nil)
+         (company-posframe-show-metadata nil))
+        :config
+        (company-posframe-mode 1))
     #+end_src
 
 *** Spell Check
@@ -791,14 +857,15 @@
 ** EAF
    EAF feels promising, but I don't particularly like it because it constantly
    flickers when I resize windows, and it does not just work without all these
-   dependencies.
+   dependencies. Only load it if needed.
    #+begin_src elisp
-     (use-package epc)
-     (use-package eaf
-       :after epc
-       :straight (:files
-                  (:defaults "eaf.py" "setup.py" "core" "app" "docker" "install-eaf.sh")
-                  :no-byte-compile t))
+     (defun jd:load-eaf ()
+       (interactive)
+       (use-package epc)
+       (use-package eaf
+         :straight (:files
+                    (:defaults "eaf.py" "setup.py" "core" "app" "docker" "install-eaf.sh")
+                    :no-byte-compile t)))
    #+end_src
 
 ** Latex
@@ -964,11 +1031,6 @@
         :bind
         (("C-c h" . jd:eldoc))
         :demand t)
-
-      (use-package eldoc-box
-        :after eldoc
-        :hook
-        ((eldoc-mode . eldoc-box-hover-at-point-mode)))
     #+end_src
 
 *** Eglot
@@ -977,14 +1039,17 @@
     #+begin_src elisp
       (use-package project)
       (use-package eglot
-        :straight (:no-native-compile t)
+        :straight
         :custom
         ((eglot-send-changes-idle-time 0.2))
         :hook
         ((c-mode . eglot-ensure)
          (c++-mode . eglot-ensure))
         :config
-        (add-to-list 'eglot-server-programs '((c++-mode c-mode) "clangd"))
+        ;; (add-to-list 'eglot-server-programs '(c-mode "clangd" "-header-insertion=never"))
+        ;; (add-to-list 'eglot-server-programs '(c++-mode "clangd" "-header-insertion=never"))
+        (add-to-list 'eglot-server-programs '(c-mode "clangd"))
+        (add-to-list 'eglot-server-programs '(c++-mode "clangd"))
         (set-face-attribute 'eglot-highlight-symbol-face nil :bold t)
         (set-face-attribute 'eglot-highlight-symbol-face nil :inherit nil))
     #+end_src
@@ -996,18 +1061,18 @@
       (setq compilation-skip-threshold 1)
     #+end_src
 
-    Define a function to auto-close compilation window if compilation is successful.
-    #+begin_src elisp
-      (defcustom jd--compile-autoclose-time 1 "Seconds to wait before auto close the compilation buffer.")
-      (defun jd:compile-auto-close (buffer string)
-        "Hook to auto close compilation BUFFER. STRING is the returned message."
-        (cond ((and (string-match "finished" string) (string-equal (buffer-name) "*compilation*"))
-               (message "Build may be successful: closing window.")
-               (run-with-timer jd--compile-autoclose-time nil 'delete-window (get-buffer-window buffer t)))
-              (t (message "Compilation exited abnormally: %s" (string-trim string)))))
+    # Define a function to auto-close compilation window if compilation is successful.
+    # #+begin_src elisp
+    #   (defcustom jd--compile-autoclose-time 1 "Seconds to wait before auto close the compilation buffer.")
+    #   (defun jd:compile-auto-close (buffer string)
+    #     "Hook to auto close compilation BUFFER. STRING is the returned message."
+    #     (cond ((and (string-match "finished" string) (string-equal (buffer-name) "*compilation*"))
+    #            (message "Build may be successful: closing window.")
+    #            (run-with-timer jd--compile-autoclose-time nil 'delete-window (get-buffer-window buffer t)))
+    #           (t (message "Compilation exited abnormally: %s" (string-trim string)))))
 
-      (push 'jd:compile-auto-close compilation-finish-functions)
-    #+end_src
+    #   (push 'jd:compile-auto-close compilation-finish-functions)
+    # #+end_src
 
     Define a function to toggle the skip threshold of compilation buffer:
     #+begin_src elisp
@@ -1062,9 +1127,11 @@
     #+end_src
 
 *** Others
-    Display line number mode for programming.
+    Display line number mode for programming. This is in conflict with company
+    mode in terminals. Disabled for now.
     #+begin_src elisp
       (use-package display-line-numbers
+        :if window-system
         :demand t
         :custom
         (display-line-numbers-width 4)
@@ -1082,6 +1149,11 @@
         :demand t
         :bind
         (("C-c f" . jd:display-which-func)))
+    #+end_src
+
+    Display the flymake fringe indicators on the right.
+    #+begin_src elisp
+      (setq flymake-fringe-indicator-position 'right-fringe)
     #+end_src
 
 ** Terminal/Shell
@@ -1131,6 +1203,8 @@
     #+begin_src elisp
       (dotimes (i 10)
         (define-key input-decode-map (format "\e[%d;5u" (+ i 48)) (kbd (format "C-%d" i))))
+
+      (define-key input-decode-map "\e[96;5u" (kbd "C-`"))
     #+end_src
 
 ** Buffer/Window Management
@@ -1147,7 +1221,8 @@
     #+begin_src elisp
       (windmove-default-keybindings)
     #+end_src
-*** Side windows
+    
+*** COMMENT Side windows
     Define the rules for side windows.
 
     Do not preserve height for top/bottom, and width for left/right.
@@ -1199,6 +1274,40 @@
                jd--par-sidewin-top-bot)))
     #+end_src
 
+*** Popper.el
+    Displays pop-up buffers that can be toggled easily.
+    #+begin_src elisp
+      (use-package popper
+        :bind (("C-`"   . popper-toggle-latest)
+               ("M-`"   . popper-cycle)
+               ("C-M-`" . popper-toggle-type))
+        :init
+        (setq popper-reference-buffers
+              '("\\*Messages\\*"
+                "Output\\*$"
+                help-mode
+                compilation-mode))
+        (popper-mode +1))
+    #+end_src
+
+*** Shackle.el
+    Better manage where to popup!
+    #+begin_src elisp
+      (use-package shackle
+        :config
+        (defun jd:shackle-right-or-below ()
+          (let ((width (frame-width)))
+            (if (> width 140)
+                'right
+              'below)))
+        (setq shackle-rules '((compilation-mode :noselect t :align below :size 15 :popup t)
+                              ("\\`\\*[Hh]elp.*?\\*\\'" :regexp t :select nil :align jd:shackle-right-or-below :popup t))
+              shackle-default-rule nil)
+        (shackle-mode)
+        (when (featurep 'popper)
+          (setq popper-display-control nil)))
+    #+end_src
+
 ** Miscellaneous Packages
 *** Which-key mode
     Displays the key bindings after a prefix.
@@ -1209,6 +1318,7 @@
         (which-key-mode t))
 
       (use-package which-key-posframe
+        :if window-system
         :config
         (setq which-key-posframe-poshandler #'posframe-poshandler-frame-bottom-center)
         (which-key-posframe-mode))
