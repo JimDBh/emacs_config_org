@@ -75,6 +75,7 @@
     We are using the develop branch of the straight repo. Also by default
     use straight with use-package.
     #+begin_src elisp
+      (defvar straight-check-for-modifications '(find-when-checking))
       (defvar straight-repository-branch "develop")
       (defvaralias 'comp-deferred-compilation-black-list 'comp-deferred-compilation-deny-list)
 
@@ -100,7 +101,7 @@
 
     #+begin_src elisp
       (straight-use-package 'use-package)
-      (setq use-package-verbose t)
+      (setq use-package-verbose nil)
       (setq straight-use-package-by-default t)
     #+end_src
 
@@ -168,16 +169,6 @@
       (defconst custom-file (expand-file-name "autogen-cus.el" user-emacs-directory))
       (unless (file-exists-p custom-file) (write-region "" nil custom-file))
       (load custom-file)
-    #+end_src
-
-    Do not do deferred compilation on autoload files. This is needed with =straight=
-    for now.
-    #+begin_src elisp
-      ;; (use-package comp
-      ;;   :ensure nil
-      ;;   :straight (:type built-in))
-      ;; (add-to-list 'comp-deferred-compilation-deny-list ".*autoload.*")
-      ;; (setq comp-async-report-warnings-errors nil)
     #+end_src
 
 *** History saving
@@ -325,8 +316,6 @@
       (use-package modus-themes
         :init
         ;; Add all your customizations prior to loading the themes
-        ;; (setq modus-themes-slanted-constructs t
-              ;; modus-themes-bold-constructs nil)
         (setq modus-themes-scale-headings t
               modus-themes-prompts 'subtle-accented
               modus-themes-slanted-constructs t
@@ -340,17 +329,6 @@
         :bind ("<f5>" . modus-themes-toggle))
     #+end_src
 
-    # Activate doom modeline after the theme is loaded.
-    # #+begin_src elisp
-    #   (when (featurep 'doom-modeline)
-    #     (when (featurep 'modus-themes)
-    #         (add-hook 'modus-themes-after-load-theme-hook
-    #                   (lambda ()
-    #                     (doom-modeline-mode -1)
-    #                     (doom-modeline-mode t)
-    #                     (setup-custom-doom-modeline)))))
-    # #+end_src
-
 *** Font
     The Fira font works very well both in terminal and in graphic emacs.
     #+begin_src elisp
@@ -358,71 +336,6 @@
     #+end_src
 
 *** Tabs
-
-**** Centaur tabs
-     Use Centaur tabs. It has a modern look, but sometimes does not play that
-     well with other packages. Need to be careful.
-
-     This is currently not turned on by default since I just feel tabs may not
-     be that useful after all.
-
-     Define a function to check if centaur tabs mode is active, if we want to
-     call the function =centaur-tabs-local-mode=, since it will fail if not in
-     centaur tabs mode.
-
-     #+begin_src elisp
-       (defun jd:disable-centaur-tabs ()
-         (when centaur-tabs-mode
-           (centaur-tabs-local-mode)))
-     #+end_src
-
-     #+begin_src elisp
-       (use-package centaur-tabs
-         :defer t
-         :commands (centaur-tabs-mode centaur-tabs-local-mode)
-         :custom
-         ((centaur-tabs-height 24)
-          (centaur-tabs-set-bar 'left))
-         :bind
-         (("C-<prior>" . centaur-tabs-backward)
-          ("C-<next>" . centaur-tabs-forward))
-         :hook
-         ((gud-mode . jd:disable-centaur-tabs)
-          (gud-locals-mode . jd:disable-centaur-tabs)
-          (gud-inferior-io-mode . jd:disable-centaur-tabs)
-          (gud-frames-mode . jd:disable-centaur-tabs)
-          (gud-breakpoints-mode . jd:disable-centaur-tabs))
-         :config
-         (defun jd:centaur-tabs-buffer-groups ()
-           "Customize centaur tabs group rules."
-           (list
-            (cond
-             ((or (derived-mode-p 'eshell-mode)
-                  (derived-mode-p 'shell-mode)
-                  (derived-mode-p 'vterm-mode)
-                  (derived-mode-p 'term-mode))
-              "Term/Shell")
-             ((memq major-mode '(org-mode org-agenda-mode diary-mode))
-              "OrgMode")
-             ((or (memq major-mode '(magit-process-mode
-                                     magit-status-mode
-                                     magit-diff-mode
-                                     magit-log-mode
-                                     magit-file-mode
-                                     magit-blob-mode
-                                     magit-blame-mode))
-                  (string-equal "COMMIT_EDITMSG" (buffer-name)))
-              "Magit")
-             ((string-equal "*" (substring (buffer-name) 0 1))
-              "Emacs")
-             (t
-              (centaur-tabs-get-group-name (current-buffer))))))
-         (advice-add 'centaur-tabs-buffer-groups :override #'jd:centaur-tabs-buffer-groups)
-         (when (featurep 'all-the-icons)
-           (setq centaur-tabs-set-icons t))
-         (centaur-tabs-headline-match))
-     #+end_src
-
 **** Tab bar
      Tab bars are quite useful in emacs to manage workspaces. But like tabs, I
      find myself not using them very often. Using =C-x t= as the prefix:
@@ -436,7 +349,7 @@
     Use a box for cursors. Just a personal preference.
     #+begin_src elisp
       (setq-default cursor-type 'box)
-      (setq-default cursor-in-non-selected-windows nil)
+      (setq-default cursor-in-non-selected-windows t)
     #+end_src
 
 ** Read-Completion
@@ -468,11 +381,6 @@
         (when (facep 'child-frame-border)
           (set-face-attribute 'child-frame-border nil :background "gray60"))
         (setq posframe-inhibit-double-buffering nil))
-
-      ;; (add-to-list 'load-path "~/.emacs.d/lisp/")
-      ;; (require 'selectrum-posframe)
-      ;; (selectrum-posframe-mode 1)
-      ;; ;; 
     #+end_src
 
     Use prescient for ordering.
@@ -487,6 +395,7 @@
     Useful functionalities for complete-read.
     #+begin_src elisp
       (use-package consult
+        :straight (:build (:not compile))
         :bind (;; C-c bindings (mode-specific-map)
                ("C-c m" . consult-mode-command)
                ("C-c o" . consult-outline)
@@ -532,15 +441,6 @@
         (setq xref-show-xrefs-function #'consult-xref))
     #+end_src
 
-    Use consult with xref. This is currently only in my local consult repo.
-    #+begin_src elisp
-      (use-package consult-xref
-        :disabled
-        :straight consult
-        :config
-        (setup-consult-xref))
-    #+end_src
-
 *** Marginalia
     Add annotations to minibuffer completions.
     #+begin_src elisp
@@ -549,8 +449,6 @@
                     ("C-M-a" . marginalia-cycle))
         :init
         (marginalia-mode)
-        (advice-add #'marginalia-cycle :after
-                    (lambda () (when (bound-and-true-p selectrum-mode) (selectrum-exhibit))))
         (setq marginalia-annotators '(marginalia-annotators-light marginalia-annotators-heavy)))
     #+end_src
 
@@ -571,6 +469,7 @@
 *** Mini frame
     #+begin_src elisp
       (use-package mini-frame
+        :if window-system
         :custom
         (mini-frame-show-parameters
          '((top . -1)
@@ -589,17 +488,6 @@
     #+end_src
 
 ** Projects
-*** COMMENT Projectile
-    Use projectile to manage projects in Emacs. Maybe will consider using
-    =project.el= later.
-    #+begin_src elisp
-      (use-package projectile
-        :bind-keymap
-        ("C-c p" . projectile-command-map)
-        :config
-        (projectile-mode))
-    #+end_src
-
 *** Ripgrep
     Ripgrep is very fast and convenient when searching in a project.
     #+begin_src elisp
@@ -901,6 +789,12 @@
               '((sequence "TODO" "DOING" "WAITING" "|" "DONE" "ABANDONED"))))
     #+end_src
 
+    Change the org files here if needed.
+    #+begin_src elisp
+      (setq org-agenda-files '("~/MyOrgNotes/agenda.org"
+                               "~/MyOrgNotes/emacs_todos.org"))
+    #+end_src
+
 *** TOC
     Auto insert a TOC when saving. Very helpful for GitHub org files.
     #+begin_src elisp
@@ -1039,17 +933,14 @@
     #+begin_src elisp
       (use-package project)
       (use-package eglot
-        :straight
         :custom
         ((eglot-send-changes-idle-time 0.2))
         :hook
         ((c-mode . eglot-ensure)
          (c++-mode . eglot-ensure))
         :config
-        ;; (add-to-list 'eglot-server-programs '(c-mode "clangd" "-header-insertion=never"))
-        ;; (add-to-list 'eglot-server-programs '(c++-mode "clangd" "-header-insertion=never"))
-        (add-to-list 'eglot-server-programs '(c-mode "clangd"))
-        (add-to-list 'eglot-server-programs '(c++-mode "clangd"))
+        (add-to-list 'eglot-server-programs '(c-mode "ccls"))
+        (add-to-list 'eglot-server-programs '(c++-mode "ccls"))
         (set-face-attribute 'eglot-highlight-symbol-face nil :bold t)
         (set-face-attribute 'eglot-highlight-symbol-face nil :inherit nil))
     #+end_src
@@ -1061,18 +952,18 @@
       (setq compilation-skip-threshold 1)
     #+end_src
 
-    # Define a function to auto-close compilation window if compilation is successful.
-    # #+begin_src elisp
-    #   (defcustom jd--compile-autoclose-time 1 "Seconds to wait before auto close the compilation buffer.")
-    #   (defun jd:compile-auto-close (buffer string)
-    #     "Hook to auto close compilation BUFFER. STRING is the returned message."
-    #     (cond ((and (string-match "finished" string) (string-equal (buffer-name) "*compilation*"))
-    #            (message "Build may be successful: closing window.")
-    #            (run-with-timer jd--compile-autoclose-time nil 'delete-window (get-buffer-window buffer t)))
-    #           (t (message "Compilation exited abnormally: %s" (string-trim string)))))
+    Define a function to auto-close compilation window if compilation is successful.
+    #+begin_src elisp
+      (defcustom jd--compile-autoclose-time 1 "Seconds to wait before auto close the compilation buffer.")
+      (defun jd:compile-auto-close (buffer string)
+        "Hook to auto close compilation BUFFER. STRING is the returned message."
+        (cond ((and (string-match "finished" string) (string-equal (buffer-name) "*compilation*"))
+               (message "Build may be successful: closing window.")
+               (run-with-timer jd--compile-autoclose-time nil 'delete-window (get-buffer-window buffer t)))
+              (t (message "Compilation exited abnormally: %s" (string-trim string)))))
 
-    #   (push 'jd:compile-auto-close compilation-finish-functions)
-    # #+end_src
+      (push 'jd:compile-auto-close compilation-finish-functions)
+    #+end_src
 
     Define a function to toggle the skip threshold of compilation buffer:
     #+begin_src elisp
@@ -1222,17 +1113,8 @@
       (windmove-default-keybindings)
     #+end_src
     
-*** COMMENT Side windows
+*** Side windows
     Define the rules for side windows.
-
-    Do not preserve height for top/bottom, and width for left/right.
-    #+begin_src elisp
-      (defvar jd--par-sidewin-top-bot
-        '(preserve-size . (nil . nil)))
-
-      (defvar jd--par-sidewin-left-right
-        '(preserve-size . (nil . nil)))
-    #+end_src
 
     Allow fit window to buffer horizontally. Also resize pixel-wise.
     #+begin_src elisp
@@ -1250,7 +1132,7 @@
         (let ((min-width (ceiling (* (frame-width) jd--fit-width-min-ratio)))
               (max-width (floor (* (frame-width) jd--fit-width-max-ratio))))
           (fit-window-to-buffer window nil nil max-width min-width nil)
-          (unless (window-system) (window-resize window 1 t))))
+          (unless (window-system) (window-resize window 2 t))))
     #+end_src
 
     Define the variable to determine width with a fixed ratio. (Currently not used).
@@ -1260,18 +1142,53 @@
 
     Set =display-buffer-alist= to display certain buffers in side windows.
     #+begin_src elisp
+      (defun jd:side-win-right-or-bottom ()
+                (let ((width (frame-width)))
+                  (if (> width 140)
+                      'right
+                    'bottom)))
+
+      (defun jd:display-buffer-in-side-win-right-or-bot (buffer alist)
+        (let ((dir (jd:side-win-right-or-bottom)))
+          (if (eq dir 'right)
+              (display-buffer-in-side-window
+               buffer
+               `((side . right)
+                 (slot . 1)
+                 (window-width . jd:fit-window-to-buffer-ratio)
+                 (preserve-size . (nil . nil))))
+            (display-buffer-in-side-window
+             buffer
+             `((side . bottom)
+               (slot . 1)
+               (window-height . 0.3)
+               (preserve-size . (nil . nil)))))))
+
+      (defun jd:display-buffer-in-side-win-selected (buffer alist)
+        (let ((window (display-buffer-in-side-window buffer alist)))
+          (select-window window)))
+
       (setq display-buffer-alist
-            `(("\\*\\(.*[hH]elp\\|undo-tree.*\\)\\*"
+            `(("\\*\\(.*[hH]elp.*\\|.*Messages.*\\)\\*"
+               jd:display-buffer-in-side-win-right-or-bot)
+              ("\\*\\(.*undo-tree.*\\)\\*"
                display-buffer-in-side-window
                (side . right)
-               (slot . 0)
+               (slot . 1)
                (window-width . jd:fit-window-to-buffer-ratio)
-               jd--par-sidewin-left-right)
-              ("\\*\\(grep\\|Completions\\|compilation\\|Python Check\\|code-review-gerrit-comment\\)\\*"
+               (preserve-size . (nil . nil)))
+              ("\\*\\(compilation\\|Python Check\\|code-review-gerrit-comment\\)\\*"
                display-buffer-in-side-window
                (side . bottom)
+               (slot . -1)
+               (window-height . 0.3)
+               (preserve-size . (nil . nil)))
+              ("\\(.*vterm.*\\|.*term.*\\|.*shell.*\\)"
+               jd:display-buffer-in-side-win-selected
+               (side . bottom)
                (slot . 0)
-               jd--par-sidewin-top-bot)))
+               (window-height . 0.3)
+               (preserve-size . (nil . nil)))))
     #+end_src
 
 *** Popper.el
@@ -1286,26 +1203,10 @@
               '("\\*Messages\\*"
                 "Output\\*$"
                 help-mode
-                compilation-mode))
+                compilation-mode
+                "term"))
         (popper-mode +1))
-    #+end_src
-
-*** Shackle.el
-    Better manage where to popup!
-    #+begin_src elisp
-      (use-package shackle
-        :config
-        (defun jd:shackle-right-or-below ()
-          (let ((width (frame-width)))
-            (if (> width 140)
-                'right
-              'below)))
-        (setq shackle-rules '((compilation-mode :noselect t :align below :size 15 :popup t)
-                              ("\\`\\*[Hh]elp.*?\\*\\'" :regexp t :select nil :align jd:shackle-right-or-below :popup t))
-              shackle-default-rule nil)
-        (shackle-mode)
-        (when (featurep 'popper)
-          (setq popper-display-control nil)))
+      (setq popper-display-control nil)
     #+end_src
 
 ** Miscellaneous Packages
