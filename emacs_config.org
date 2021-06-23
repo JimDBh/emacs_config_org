@@ -32,397 +32,450 @@
   - [[#provide-initel][Provide init.el]]
 
 * About
-  This org file contains my Emacs configurations. Once tangled (=M-x
-  org-babel-tangle=) it "compiles" into init.el (and possibly early-init.el,
-  depending on the Emacs version), which can be used by Emacs at startup.
+This org file contains my Emacs configurations. Once tangled (=M-x
+org-babel-tangle=) it "compiles" into init.el (and possibly early-init.el,
+depending on the Emacs version), which can be used by Emacs at startup.
   
 * early-init.el
-  :properties:
-  :header-args: :tangle "./early-init.el"
-  :end:
+:properties:
+:header-args: :tangle "./early-init.el"
+:end:
 
-  Early-init.el was introduced since Emacs 27. Most configurations
-  should still belong to init.el, but this makes it possible to change
-  things at a very early stage, sometimes quite helpful.
+Early-init.el was introduced since Emacs 27. Most configurations
+should still belong to init.el, but this makes it possible to change
+things at a very early stage, sometimes quite helpful.
 
 ** Header
-   #+begin_src elisp
-     ;;; early-init.el --- Early configs -*- lexical-binding: t; buffer-read-only:t -*-
-     ;;;
-     ;;; Commentary:
-     ;;; This file is auto-generated from an org file. Please do not change this file directly.
-     ;;;
-     ;;; Code:
-   #+end_src
+#+begin_src elisp
+  ;;; early-init.el --- Early configs -*- lexical-binding: t; buffer-read-only:t -*-
+  ;;;
+  ;;; Commentary:
+  ;;; This file is auto-generated from an org file. Please do not change this file directly.
+  ;;;
+  ;;; Code:
+#+end_src
 
 ** Speed tweaks
-   Tweak garbage collection and also other things for a better
-   performance. This may need to be changed if on a relatively
-   resource-constraint machine.
+Tweak garbage collection and also other things for a better
+performance. This may need to be changed if on a relatively
+resource-constraint machine.
 
-   #+begin_src elisp
-     (setq gc-cons-threshold (* 50 1024 1024))
-     (setq read-process-output-max (* 2048 2048))
-   #+end_src
+#+begin_src elisp
+  (setq gc-cons-threshold (* 50 1024 1024))
+  (setq read-process-output-max (* 2048 2048))
+#+end_src
 
 ** Package utilities
 *** Straight.el
-    Straight.el helps managing packages in a very convenient yet
-    consistent way. Bootstrap it so we can use it later to require
-    packages.
+Straight.el helps managing packages in a very convenient yet
+consistent way. Bootstrap it so we can use it later to require
+packages.
 
-    We are using the develop branch of the straight repo. Also by default
-    use straight with use-package.
-    #+begin_src elisp
-      (defvar straight-check-for-modifications '(find-when-checking))
-      (defvar straight-repository-branch "develop")
-      (defvaralias 'comp-deferred-compilation-black-list 'comp-deferred-compilation-deny-list)
-
-      (defvar bootstrap-version)
-      (let ((bootstrap-file
-             (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-            (bootstrap-version 5))
-        (unless (file-exists-p bootstrap-file)
-          (with-current-buffer
-              (url-retrieve-synchronously
-               "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-               'silent 'inhibit-cookies)
-            (goto-char (point-max))
-            (eval-print-last-sexp)))
-        (load bootstrap-file nil 'nomessage))
-
-      (setq straight-cache-autoloads t)
-      (setq straight-disable-native-compilation nil)
-    #+end_src
+We are using the develop branch of the straight repo. Also by default
+use straight with use-package.
+#+begin_src elisp
+  (defvar straight-check-for-modifications '(find-when-checking))
+  (defvar straight-repository-branch "develop")
+  (defvaralias 'comp-deferred-compilation-black-list 'comp-deferred-compilation-deny-list)
+  
+  (defvar bootstrap-version)
+  (let ((bootstrap-file
+         (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+        (bootstrap-version 5))
+    (unless (file-exists-p bootstrap-file)
+      (with-current-buffer
+          (url-retrieve-synchronously
+           "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+           'silent 'inhibit-cookies)
+        (goto-char (point-max))
+        (eval-print-last-sexp)))
+    (load bootstrap-file nil 'nomessage))
+  
+  (setq straight-cache-autoloads t)
+  (setq straight-disable-native-compilation nil)
+#+end_src
 
 *** Use-package.el
-    Use use-package for much easier package configuration with auto-loading.
+Use use-package for much easier package configuration with auto-loading.
 
-    #+begin_src elisp
-      (straight-use-package 'use-package)
-      (setq use-package-verbose nil)
-      (setq straight-use-package-by-default t)
-    #+end_src
+#+begin_src elisp
+  (straight-use-package 'use-package)
+  (setq use-package-verbose nil)
+  (setq straight-use-package-by-default t)
+#+end_src
 
 *** Others
-    Do not load package.el since we are not using it.
-    #+begin_src elisp
-      (setq package-enable-at-startup nil)
-      (setq byte-compile-warnings '(cl-functions))
-    #+end_src
+Do not load package.el since we are not using it.
+#+begin_src elisp
+  (setq package-enable-at-startup nil)
+  (setq byte-compile-warnings '(cl-functions))
+#+end_src
 
 ** Early tweaks on appearance
-   No menu, tool, scroll bars, please.
-   #+begin_src elisp
-     (tool-bar-mode -1)
-     (menu-bar-mode -1)
-     (scroll-bar-mode -1)
-   #+end_src
+No menu, tool, scroll bars, please.
+#+begin_src elisp
+  (tool-bar-mode -1)
+  (menu-bar-mode -1)
+  (scroll-bar-mode -1)
+#+end_src
 
 ** Provide =early-init.el=
-   #+begin_src elisp
-     (provide 'early-init)
-     ;;; early-init.el ends here
-   #+end_src
+#+begin_src elisp
+  (provide 'early-init)
+  ;;; early-init.el ends here
+#+end_src
 
 * init.el
-  :properties:
-  :header-args: :tangle "./init.el"
-  :end:
+:properties:
+:header-args: :tangle "./init.el"
+:end:
 
-  Init.el should be placed in =user-emacs-directory=. By default it's
-  in =~/.emacs.d/=.
+Init.el should be placed in =user-emacs-directory=. By default it's
+in =~/.emacs.d/=.
 
 ** Header
-   #+begin_src elisp
-     ;;; init.el --- My emacs configs -*- lexical-binding: t; buffer-read-only:t -*-
-     ;;;
-     ;;; Commentary:
-     ;;; This file is auto-generated from an org file. Please do not change this file directly.
-     ;;;
-     ;;; Code:
-   #+end_src
+#+begin_src elisp
+  ;;; init.el --- My emacs configs -*- lexical-binding: t; buffer-read-only:t -*-
+  ;;;
+  ;;; Commentary:
+  ;;; This file is auto-generated from an org file. Please do not change this file directly.
+  ;;;
+  ;;; Code:
+#+end_src
 
-   This can help benchmark initialization time. Remove the disabled mark to use it.
-   #+begin_src elisp
-     (use-package benchmark-init
-       :disabled ;; comment this line to benchmark at startup
-       :config
-       (benchmark-init/activate))
-   #+end_src
+This can help benchmark initialization time. Remove the disabled mark to use it.
+#+begin_src elisp
+  (use-package benchmark-init
+    :disabled ;; comment this line to benchmark at startup
+    :config
+    (benchmark-init/activate))
+#+end_src
 
 ** General Settings
 *** Default files
-    Load =early-init.el= manually if it is not supported by this version of Emacs.
-    #+begin_src elisp
-      (unless (featurep 'early-init)
-        (let ((early-init-file (expand-file-name "early-init.el" user-emacs-directory)))
-          (when (file-exists-p early-init-file) (load early-init-file))))
-    #+end_src
+Load =early-init.el= manually if it is not supported by this version of Emacs.
+#+begin_src elisp
+  (unless (featurep 'early-init)
+    (let ((early-init-file (expand-file-name "early-init.el" user-emacs-directory)))
+      (when (file-exists-p early-init-file) (load early-init-file))))
+#+end_src
 
-    Define a separate file for customized variables. Create the file if it does
-    not exist.  If anything is deleted in =init.el=, the saved customized values
-    would persist still. This is not great. Need to find a new way.
+Define a separate file for customized variables. Create the file if it does
+not exist.  If anything is deleted in =init.el=, the saved customized values
+would persist still. This is not great. Need to find a new way.
 
-    #+begin_src elisp
-      (defconst custom-file (expand-file-name "autogen-cus.el" user-emacs-directory))
-      (unless (file-exists-p custom-file) (write-region "" nil custom-file))
-      (load custom-file)
-    #+end_src
+#+begin_src elisp
+  (defconst custom-file (expand-file-name "autogen-cus.el" user-emacs-directory))
+  (unless (file-exists-p custom-file) (write-region "" nil custom-file))
+  (load custom-file)
+#+end_src
 
 *** History saving
-    Using recentf-mode and savehist mode.
-    #+begin_src elisp
-      (use-package recentf
-        :config
-        (setq recentf-filename-handlers '(abbreviate-file-name))
-        (recentf-mode 1))
-      
-      (use-package savehist
-        :init
-        (savehist-mode))
-    #+end_src
+Using recentf-mode and savehist mode.
+#+begin_src elisp
+  (use-package recentf
+    :config
+    (setq recentf-filename-handlers '(abbreviate-file-name))
+    (recentf-mode 1))
+  
+  (use-package savehist
+    :init
+    (savehist-mode))
+#+end_src
 
 *** Other
-    Set recenter positions so we can see a portion of the previous/next page.
-    #+begin_src elisp
-      (setq recenter-positions '(middle 0.15 0.85))
-    #+end_src
+Set recenter positions so we can see a portion of the previous/next page.
+#+begin_src elisp
+  (setq recenter-positions '(middle 0.15 0.85))
+#+end_src
 
-    The default scroll amount is too fast for me.
-    #+begin_src elisp
-      (setq mouse-wheel-scroll-amount
-            '(3 ((shift) . 1) ((meta)) ((control) . text-scale))
-            mouse-wheel-progressive-speed nil)
-    #+end_src
+The default scroll amount is too fast for me.
+#+begin_src elisp
+  (setq mouse-wheel-scroll-amount
+        '(3 ((shift) . 1) ((meta)) ((control) . text-scale))
+        mouse-wheel-progressive-speed nil)
+#+end_src
 
-    Resize by pixels.
-    #+begin_src elisp
-      (setq frame-resize-pixelwise t)
-    #+end_src
+Resize by pixels.
+#+begin_src elisp
+  (setq frame-resize-pixelwise t)
+#+end_src
 
-    Allow following symbolic links.
-    #+begin_src elisp
-      (setq vc-follow-symlinks t)
-    #+end_src
+Allow following symbolic links.
+#+begin_src elisp
+  (setq vc-follow-symlinks t)
+#+end_src
 
-    Allow recursive minibuffer.
-    #+begin_src elisp
-      (setq enable-recursive-minibuffers  t)
-    #+end_src
+Allow recursive minibuffer.
+#+begin_src elisp
+  (setq enable-recursive-minibuffers  t)
+#+end_src
 
-    Do not show advice warnings. Could be risky, but much less annoying.
-    #+begin_src elisp
-      (setq ad-redefinition-action 'accept)
-    #+end_src
+Do not show advice warnings. Could be risky, but much less annoying.
+#+begin_src elisp
+  (setq ad-redefinition-action 'accept)
+#+end_src
 
-    Do not ask me if a process is running.
-    #+begin_src elisp
-      (setq confirm-kill-processes nil)
-    #+end_src
+Do not ask me if a process is running.
+#+begin_src elisp
+  (setq confirm-kill-processes nil)
+#+end_src
 
-    #+begin_src elisp
-      (setq-default indent-tabs-mode nil)
-    #+end_src
+#+begin_src elisp
+  (setq-default indent-tabs-mode nil)
+#+end_src
 
 ** Appearance
-   Set up theme, mode-line, tab-bar, etc. I usually set them up before
-   other packages, since some packages do not play nice with themes and
-   may get reset if a theme is loaded after the package is initialized.
+Set up theme, mode-line, tab-bar, etc. I usually set them up before
+other packages, since some packages do not play nice with themes and
+may get reset if a theme is loaded after the package is initialized.
 
 *** All the icons
-    Use icons in Emacs for a better look.
-    #+begin_src elisp
-      (use-package all-the-icons)
-    #+end_src
+Use icons in Emacs for a better look.
+#+begin_src elisp
+  (use-package all-the-icons)
+#+end_src
 
 *** Modeline
-    Currently using =doom-modeline=. I also liked =telephone-line= too.
-    #+begin_src elisp
-      (use-package doom-modeline
-        :custom
-        (doom-modeline-height 34)
-        (doom-modeline-buffer-file-name-style 'truncate-with-project)
-        :config
-        ;; do not display the host name, it's often too long.
-        (doom-modeline-def-segment remote-host-no-host
-                                   "Hostname for remote buffers."
-                                   (when default-directory
-                                     (when (file-remote-p default-directory 'host)
-                                       (propertize
-                                        " @"
-                                        'face (if (doom-modeline--active)
-                                                  'doom-modeline-host
-                                                'mode-line-inactive)))))
-        (doom-modeline-def-modeline 'no-host-main
-                                    '(bar workspace-name window-number modals matches buffer-info
-                                          remote-host-no-host buffer-position word-count parrot selection-info)
-                                    '(objed-state persp-name battery grip irc mu4e gnus github debug
-                                                  lsp input-method indent-info process vcs checker misc-info))
-
-        (defun setup-custom-doom-modeline ()
-          "Setup the customized modeline for doom modeline."
-          (doom-modeline-set-modeline 'no-host-main 'default))
-
-        (setq mode-line-misc-info
-              '((which-function-mode
-                 (which-func-mode
-                  (#1="" which-func-format " ")))
-                ;; global-mode-string
-                (#1#
-                 (:eval
-                  (if
-                      (and tab-bar-mode
-                           (memq 'tab-bar-format-global tab-bar-format))
-                      #1# global-mode-string))
-                 " ")))
-
-        (add-hook 'doom-modeline-mode-hook 'setup-custom-doom-modeline)
-        ;; (doom-modeline-set-modeline 'no-host-main t)
-        (doom-modeline-mode))
-
-      (use-package smart-mode-line
-        :disabled
-        :config
-        (sml/setup))
-
-      (use-package moody
-        :disabled
-        :config
-        (setq x-underline-at-descent-line t)
-        (moody-replace-mode-line-buffer-identification)
-        (moody-replace-vc-mode))
-    #+end_src
+Currently using =doom-modeline=. I also liked =telephone-line= too.
+#+begin_src elisp
+  (use-package doom-modeline
+    :custom
+    (doom-modeline-height 34)
+    (doom-modeline-buffer-file-name-style 'truncate-with-project)
+    :config
+    ;; do not display the host name, it's often too long.
+    (doom-modeline-def-segment remote-host-no-host
+      "Hostname for remote buffers."
+      (when default-directory
+        (when (file-remote-p default-directory 'host)
+          (propertize
+           " @"
+           'face (if (doom-modeline--active)
+                     'doom-modeline-host
+                   'mode-line-inactive)))))
+    (doom-modeline-def-modeline 'no-host-main
+      '(bar workspace-name window-number modals matches buffer-info
+            remote-host-no-host buffer-position word-count parrot selection-info)
+      '(objed-state persp-name battery grip irc mu4e gnus github debug
+                    lsp input-method indent-info process vcs checker misc-info))
+  
+    (defun setup-custom-doom-modeline ()
+      "Setup the customized modeline for doom modeline."
+      (doom-modeline-set-modeline 'no-host-main 'default))
+  
+    (setq mode-line-misc-info
+          '((which-function-mode
+             (which-func-mode
+              (#1="" which-func-format " ")))
+            ;; global-mode-string
+            (#1#
+             (:eval
+              (if
+                  (and tab-bar-mode
+                       (memq 'tab-bar-format-global tab-bar-format))
+                  #1# global-mode-string))
+             " ")))
+  
+    (add-hook 'doom-modeline-mode-hook 'setup-custom-doom-modeline)
+    ;; (doom-modeline-set-modeline 'no-host-main t)
+    (doom-modeline-mode))
+  
+  (use-package smart-mode-line
+    :disabled
+    :config
+    (sml/setup))
+  
+  (use-package moody
+    :disabled
+    :config
+    (setq x-underline-at-descent-line t)
+    (moody-replace-mode-line-buffer-identification)
+    (moody-replace-vc-mode))
+#+end_src
 
 *** Themes
-    I'm constantly changing themes as it turns out.
-    #+begin_src elisp
-      (use-package doom-themes
-        :disabled
-        :config
-        (load-theme 'doom-one t)
-        (set-face-attribute 'header-line nil :background "#22262b")
-        (set-face-attribute 'tab-bar nil :background "#151823")
-        (set-face-attribute 'tab-bar-tab nil :background "#22262b")
-        (set-face-attribute 'tab-bar-tab-inactive nil :background "#182126")
-        (set-face-attribute 'highlight nil
-                            :background "#2257a0"
-                            :foreground "#dfdfdf"
-                            :distant-foreground "#1b2229"
-                            :weight 'normal)
-        (set-face-attribute 'completions-annotations nil
-                            :slant 'normal))
-      
-      (use-package doom-themes
-        :disabled
-        :config
-        (load-theme 'doom-one-light t))
-      
-      (use-package leuven-theme
-        :disabled
-        :config
-        (setq-default left-fringe-width 6)
-        (load-theme 'leuven))
-      
-      (use-package kaolin-themes
-        :disabled
-        :config
-        (load-theme 'kaolin-light))
-      
-      (use-package modus-themes
-        :init
-        ;; Add all your customizations prior to loading the themes
-        (setq modus-themes-scale-headings t
-              modus-themes-prompts 'subtle-accented
-              modus-themes-slanted-constructs t
-              modus-themes-completions 'opinionated
-              modus-themes-paren-match 'subtle-bold)
-        ;; Load the theme files before enabling a theme (else you get an error).
-        (modus-themes-load-themes)
-        :config
-        ;; Load the theme of your choice:
-        (modus-themes-load-operandi) ;; OR (modus-themes-load-vivendi)
-        ;; (load-theme 'modus-operandi)
-        :bind ("<f5>" . modus-themes-toggle))
-    #+end_src
+I'm constantly changing themes as it turns out.
+#+begin_src elisp
+  (use-package doom-themes
+    :disabled
+    :config
+    (load-theme 'doom-one t)
+    (set-face-attribute 'header-line nil :background "#22262b")
+    (set-face-attribute 'tab-bar nil :background "#151823")
+    (set-face-attribute 'tab-bar-tab nil :background "#22262b")
+    (set-face-attribute 'tab-bar-tab-inactive nil :background "#182126")
+    (set-face-attribute 'highlight nil
+                        :background "#2257a0"
+                        :foreground "#dfdfdf"
+                        :distant-foreground "#1b2229"
+                        :weight 'normal)
+    (set-face-attribute 'completions-annotations nil
+                        :slant 'normal))
+  
+  (use-package doom-themes
+    :disabled
+    :config
+    (load-theme 'doom-one-light t))
+  
+  (use-package leuven-theme
+    :disabled
+    :config
+    (setq-default left-fringe-width 6)
+    (load-theme 'leuven))
+  
+  (use-package kaolin-themes
+    :disabled
+    :config
+    (load-theme 'kaolin-light))
+  
+  (use-package modus-themes
+    :init
+    ;; Add all your customizations prior to loading the themes
+    (setq modus-themes-scale-headings t
+          modus-themes-prompts 'subtle-accented
+          modus-themes-slanted-constructs t
+          modus-themes-completions 'opinionated
+          modus-themes-paren-match 'subtle-bold
+          modus-themes-subtle-line-numbers t)
+    ;; Load the theme files before enabling a theme (else you get an error).
+    (modus-themes-load-themes)
+    :config
+    ;; Load the theme of your choice:
+    (modus-themes-load-vivendi) ;; OR (modus-themes-load-operandi)
+    ;; (load-theme 'modus-operandi)
+    :bind ("<f5>" . modus-themes-toggle))
+  
+  (use-package humanoid-themes
+    :disabled
+    :config
+    (load-theme 'humanoid-dark))
+#+end_src
 
 *** Font
-    The Fira font works very well both in terminal and in graphic emacs.
-    #+begin_src elisp
-      (add-to-list 'default-frame-alist '(font . "Fira Code-10"))
-    #+end_src
+The Fira font works very well both in terminal and in graphic emacs.
+#+begin_src elisp
+  (add-to-list 'default-frame-alist '(font . "Fira Code-11"))
+#+end_src
 
 *** Tabs
 **** Tab bar
-     Tab bars are quite useful in emacs to manage workspaces. But like tabs, I
-     find myself not using them very often. Using =C-x t= as the prefix:
+Tab bars are quite useful in emacs to manage workspaces. But like tabs, I
+find myself not using them very often. Using =C-x t= as the prefix:
 
-     #+begin_src elisp
-       (use-package tab-bar
-         :bind (("C-x t b" . tab-bar-switch-to-tab))
-         :custom
-         ((tab-bar-format '(tab-bar-format-history
-                            tab-bar-format-tabs
-                            tab-bar-separator
-                            tab-bar-format-add-tab
-                            tab-bar-format-align-right
-                            tab-bar-format-global
-                            ))))
-       (tab-bar-mode 1)
-     #+end_src
+#+begin_src elisp
+  (use-package tab-bar
+    :bind (("C-x t b" . tab-bar-switch-to-tab))
+    :init
+    (defun jd:create-bar-image (face width height)
+      "Create the bar image.
+  Use FACE1 for the bar, FACE2 for the background.
+  WIDTH and HEIGHT are the image size in pixels."
+      (when (and (display-graphic-p)
+                 (image-type-available-p 'pbm))
+        (propertize
+         " " 'display
+         (let ((color (or (face-background face nil t) "None")))
+           (ignore-errors
+             (create-image
+              (concat (format "P1\n%i %i\n" width height)
+                      (make-string (* width height) ?1)
+                      "\n")
+              'pbm t :foreground color :ascent 'center))))))
+    (defun jd:get-tab-bar-height (h)
+      160)
+    (defun jd:tab-bar-tab-name-format (tab i)
+      (let* ((current-p (eq (car tab) 'current-tab))
+             (str (propertize
+                   (concat
+                    " "
+                    (if tab-bar-tab-hints (format "%d " i) "")
+                    (alist-get 'name tab)
+                    " "
+                    (or (and tab-bar-close-button-show
+                             (not (eq tab-bar-close-button-show
+                                      (if current-p 'non-selected 'selected)))
+                             tab-bar-close-button)
+                        ""))                        
+                   'face (funcall tab-bar-tab-face-function tab)
+                   'line-height 1.5)))
+        str
+        ))
+    :custom
+    ((tab-bar-format '(tab-bar-format-history
+                       tab-bar-format-tabs
+                       tab-bar-separator
+                       tab-bar-format-add-tab
+                       tab-bar-format-align-right
+                       tab-bar-format-global))
+     (tab-bar-close-button-show nil)
+     (tab-bar-new-button-show nil))
+    :config
+    (let ((active-color (face-attribute 'tab-bar-tab :background))
+          (inactive-color (face-attribute 'tab-bar-tab-inactive :background)))
+      (set-face-attribute 'tab-bar-tab nil
+                          :box `(:line-width 5 :color ,active-color))
+      (set-face-attribute 'tab-bar-tab-inactive nil
+                          :box `(:line-width 5 :color ,inactive-color)))
+    ;; (set-face-attribute 'tab-bar-tab nil :underline t)
+    ;; (set-face-attribute 'tab-bar-tab-inactive nil :underline t)
+    (setq tab-bar-tab-name-format-function #'jd:tab-bar-tab-name-format)
+    (tab-bar-mode 1))
+  
+#+end_src
 
 *** Others
-    Use a box for cursors. Just a personal preference.
-    #+begin_src elisp
-      (setq-default cursor-type 'box)
-      (setq-default cursor-in-non-selected-windows t)
-    #+end_src
+Use a box for cursors. Just a personal preference.
+#+begin_src elisp
+  (setq-default cursor-type 'box)
+  (setq-default cursor-in-non-selected-windows t)
+#+end_src
 
-    Enable displaying time
-    #+begin_src elisp
-      (setq display-time-default-load-average nil)
-      (setq display-time-format " %R ")
-      (display-time-mode 1)
-    #+end_src
+Enable displaying time
+#+begin_src elisp
+  (setq display-time-default-load-average nil)
+  (setq display-time-format " %R ")
+  (display-time-mode 1)
+#+end_src
 
 ** Read-Completion
 *** COMMENT Prescient
-    Better and simpler ordering of candidates. (Now using orderless)
-    #+begin_src elisp
-      (use-package prescient
-        :config
-        (prescient-persist-mode +1))
-    #+end_src
+Better and simpler ordering of candidates. (Now using orderless)
+#+begin_src elisp
+  (use-package prescient
+    :config
+    (prescient-persist-mode +1))
+#+end_src
 
 *** COMMENT Selectrum
-    Use =selectrum= for incremental completion. (Now using vertico)
-    #+begin_src elisp
-      (use-package selectrum
-        :custom
-        ((selectrum-count-style 'current/matches)
-         (selectrum-fix-vertical-window-height nil))
-        :bind
-        (("C-c C-r" . selectrum-repeat))
-        :config
-        (selectrum-mode +1))
-    #+end_src
+Use =selectrum= for incremental completion. (Now using vertico)
+#+begin_src elisp
+  (use-package selectrum
+    :custom
+    ((selectrum-count-style 'current/matches)
+     (selectrum-fix-vertical-window-height nil))
+    :bind
+    (("C-c C-r" . selectrum-repeat))
+    :config
+    (selectrum-mode +1))
+#+end_src
 
-    Use =posframe= for displaying candidates
-    #+begin_src elisp
-      (use-package posframe
-        :config
-        (when (facep 'child-frame-border)
-          (set-face-attribute 'child-frame-border nil :background "gray60"))
-        (setq posframe-inhibit-double-buffering nil))
-    #+end_src
+Use =posframe= for displaying candidates
+#+begin_src elisp
+  (use-package posframe
+    :config
+    (when (facep 'child-frame-border)
+      (set-face-attribute 'child-frame-border nil :background "gray60"))
+    (setq posframe-inhibit-double-buffering nil))
+#+end_src
 
-    Use prescient for ordering.
-    #+begin_src elisp
-      (use-package selectrum-prescient
-        :if (featurep 'prescient)
-        :config
-        (selectrum-prescient-mode +1))
-    #+end_src
+Use prescient for ordering.
+#+begin_src elisp
+  (use-package selectrum-prescient
+    :if (featurep 'prescient)
+    :config
+    (selectrum-prescient-mode +1))
+#+end_src
 
 *** Vertico
 #+begin_src elisp
@@ -441,951 +494,1021 @@
           completion-category-overrides '((file (styles . (partial-completion))))))
 #+end_src
 
+*** COMMENT Corfu
+#+begin_src elisp
+  (use-package corfu
+    ;; Optionally use TAB for cycling, default is `corfu-complete'.
+    ;; :bind (:map corfu-map
+    ;;        ("TAB" . corfu-next)
+    ;;        ("S-TAB" . corfu-previous))
+  
+    ;; You may want to enable Corfu only for certain modes.
+    ;; :hook ((prog-mode . corfu-mode)
+    ;;        (shell-mode . corfu-mode)
+    ;;        (eshell-mode . corfu-mode))
+  
+    :config
+  
+    ;; Recommended: Enable Corfu globally.
+    ;; This is recommended since dabbrev can be used globally (M-/).
+    (corfu-global-mode)
+  
+    ;; Optionally enable cycling for `corfu-next' and `corfu-previous'.
+    ;; (setq corfu-cycle t)
+    )
+#+end_src
+
 *** Consult
-    Useful functionalities for complete-read.
-    #+begin_src elisp
-      (use-package consult
-        ;; :straight (:build (:not compile))
-        :bind (;; C-c bindings (mode-specific-map)
-               ("C-c m" . consult-mode-command)
-               ("C-c o" . consult-outline)
-               ("C-c i" . consult-imenu)
-               ;; C-x bindings (ctl-x-map)
-               ("C-x M-:" . consult-complex-command)
-               ("C-x b" . consult-buffer)
-               ("C-x 4 b" . consult-buffer-other-window)
-               ("C-x 5 b" . consult-buffer-other-frame)
-               ("C-x r x" . consult-register)
-               ("C-x r b" . consult-bookmark)
-               ;; M-g bindings (goto-map)
-               ("M-g g" . consult-goto-line)
-               ("M-g M-g" . consult-goto-line)
-               ("M-g m" . consult-mark)
-               ("M-g k" . consult-global-mark)
-               ("M-g e" . consult-error)
-               ("M-g f" . consult-flymake)
-               ;; M-s bindings (search-map)
-               ("M-s g" . consult-ripgrep)      ;; Alternatives: consult-grep, consult-ripgrep
-               ("M-s f" . consult-find)          ;; Alternatives: consult-locate, my-fdfind
-               ("M-s l" . consult-line)
-               ("M-s m" . consult-multi-occur)
-               ("M-s k" . consult-keep-lines)
-               ("M-s u" . consult-focus-lines)
-               ;; Other bindings
-               ("M-y" . consult-yank-pop)
-               ("<help> a" . consult-apropos)
-               ("C-s" . consult-line))
-        :init
-        (setq register-preview-delay 0
-              register-preview-function #'consult-register-preview)
-        :config
-        (setq consult-preview-key (kbd "C-l"))
-        (setq consult-narrow-key "<")
-        (defun jd:current-project-root ()
-          (let ((p (project-current)))
-            (if p
-                (expand-file-name (project-root p)))))
-        (setq consult-project-root-function #'jd:current-project-root)
-        (when (>= emacs-major-version 27)
-          (setq xref-show-definitions-function #'consult-xref))
-        (setq xref-show-xrefs-function #'consult-xref))
-    #+end_src
+Useful functionalities for complete-read.
+#+begin_src elisp
+  (use-package consult
+    ;; :straight (:build (:not compile))
+    :bind (;; C-c bindings (mode-specific-map)
+           ("C-c m" . consult-mode-command)
+           ("C-c o" . consult-outline)
+           ("C-c i" . consult-imenu)
+           ;; C-x bindings (ctl-x-map)
+           ("C-x M-:" . consult-complex-command)
+           ("C-x b" . consult-buffer)
+           ("C-x 4 b" . consult-buffer-other-window)
+           ("C-x 5 b" . consult-buffer-other-frame)
+           ("C-x r x" . consult-register)
+           ("C-x r b" . consult-bookmark)
+           ;; M-g bindings (goto-map)
+           ("M-g g" . consult-goto-line)
+           ("M-g M-g" . consult-goto-line)
+           ("M-g m" . consult-mark)
+           ("M-g k" . consult-global-mark)
+           ("M-g e" . consult-error)
+           ("M-g f" . consult-flymake)
+           ;; M-s bindings (search-map)
+           ("M-s g" . consult-ripgrep)      ;; Alternatives: consult-grep, consult-ripgrep
+           ("M-s f" . consult-find)          ;; Alternatives: consult-locate, my-fdfind
+           ("M-s l" . consult-line)
+           ("M-s m" . consult-multi-occur)
+           ("M-s k" . consult-keep-lines)
+           ("M-s u" . consult-focus-lines)
+           ;; Other bindings
+           ("M-y" . consult-yank-pop)
+           ("<help> a" . consult-apropos)
+           ("C-s" . consult-line))
+    :init
+    (setq register-preview-delay 0
+          register-preview-function #'consult-register-preview)
+    :config
+    (setq consult-preview-key (kbd "C-l"))
+    (setq consult-narrow-key "<")
+    (defun jd:current-project-root ()
+      (let ((p (project-current)))
+        (if p
+            (expand-file-name (project-root p)))))
+    (setq consult-project-root-function #'jd:current-project-root)
+    (when (>= emacs-major-version 27)
+      (setq xref-show-definitions-function #'consult-xref))
+    (setq xref-show-xrefs-function #'consult-xref))
+#+end_src
+
+#+begin_src elisp
+  ;; (setq tab-always-indent 'complete)
+  ;; (use-package cc-mode)
+  ;; (define-key c-mode-map (kbd "<tab>") 'indent-for-tab-command)
+  ;; (define-key c-mode-map (kbd "TAB") 'indent-for-tab-command)
+  (setq-default completion-in-region-function 'consult-completion-in-region)
+#+end_src
 
 *** Marginalia
-    Add annotations to minibuffer completions.
-    #+begin_src elisp
-      (use-package marginalia
-        :bind (:map minibuffer-local-map
-                    ("C-M-a" . marginalia-cycle))
-        :init
-        (marginalia-mode)
-        (setq marginalia-annotators '(marginalia-annotators-light marginalia-annotators-heavy)))
-    #+end_src
+Add annotations to minibuffer completions.
+#+begin_src elisp
+  (use-package marginalia
+    :bind (:map minibuffer-local-map
+                ("C-M-a" . marginalia-cycle))
+    :init
+    (marginalia-mode)
+    (setq marginalia-annotators '(marginalia-annotators-light marginalia-annotators-heavy)))
+#+end_src
 
 *** embark
-    Enables useful actions to minibuffer completions.
-    #+begin_src elisp
-      (use-package embark
-        :bind
-        ("C-o" . embark-act))
-
-      (use-package embark-consult
-        :after (embark consult)
-        :demand t
-        :hook
-        (embark-collect-mode . embark-consult-preview-minor-mode))
-    #+end_src
+Enables useful actions to minibuffer completions.
+#+begin_src elisp
+  (use-package embark
+    :bind
+    ("C-o" . embark-act))
+  
+  (use-package embark-consult
+    :after (embark consult)
+    :demand t
+    :hook
+    (embark-collect-mode . embark-consult-preview-minor-mode))
+#+end_src
 
 *** Mini frame
-    #+begin_src elisp
-      (use-package mini-frame
-        :disabled
-        :if window-system
-        :custom
-        (mini-frame-show-parameters
-         '((top . -1)
-           (width . 0.8)
-           (left . 0.5)
-           (height . 1)
-           (internal-border-width . 1)))
-        :config
-        (setq mini-frame-ignore-functions '(org-read-date))
-        (setq mini-frame-ignore-commands '(nil))
-        (setq mini-frame-internal-border-color "gray60")
-        (setq mini-frame-color-shift-step 0)
-        (setq mini-frame-resize t)
-        (when (facep 'child-frame-border)
-          (set-face-attribute 'child-frame-border nil :background "gray60"))
-        (mini-frame-mode))
-    #+end_src
+#+begin_src elisp
+  (use-package mini-frame
+    :disabled
+    :if (display-graphic-p)
+    :custom
+    (mini-frame-show-parameters
+     '((top . -1)
+       (width . 0.8)
+       (left . 0.5)
+       (height . 1)
+       (internal-border-width . 1)))
+    :config
+    (setq mini-frame-ignore-functions '(org-read-date))
+    (setq mini-frame-ignore-commands '(nil))
+    (setq mini-frame-internal-border-color "gray60")
+    (setq mini-frame-color-shift-step 0)
+    (setq mini-frame-resize t)
+    (when (facep 'child-frame-border)
+      (set-face-attribute 'child-frame-border nil :background "gray60"))
+    (mini-frame-mode))
+#+end_src
 
 ** Projects
 *** Ripgrep
-    Ripgrep is very fast and convenient when searching in a project.
-    #+begin_src elisp
-      (use-package ripgrep)
-    #+end_src
+Ripgrep is very fast and convenient when searching in a project.
+#+begin_src elisp
+  (use-package ripgrep)
+#+end_src
 
 *** Treemacs
-    Side bar to navigate files in a project. Quite helpful at times, and
-    looks modern.  It might conflict with other window management
-    packages, so need to be careful in config.
-    #+begin_src elisp
-      (use-package treemacs
-        :commands treemacs
-        :custom
-        ((treemacs-width 34)
-         (treemacs-no-delete-other-windows t)
-         (treemacs-space-between-root-nodes nil))
-        :custom-face
-        (treemacs-root-face ((t (:inherit font-lock-string-face :weight bold :height 1.1))))
-        :config
-        (when (window-system) (treemacs-resize-icons 20))
-        (use-package treemacs-magit))
-    #+end_src
+Side bar to navigate files in a project. Quite helpful at times, and
+looks modern.  It might conflict with other window management
+packages, so need to be careful in config.
+#+begin_src elisp
+  (use-package treemacs
+    :commands treemacs
+    :custom
+    ((treemacs-width 34)
+     (treemacs-no-delete-other-windows t)
+     (treemacs-space-between-root-nodes nil))
+    :custom-face
+    (treemacs-root-face ((t (:inherit font-lock-string-face :weight bold :height 1.1))))
+    :config
+    (when (display-graphic-p) (treemacs-resize-icons 20))
+    (use-package treemacs-magit))
+#+end_src
 
 ** Version Control
-   Use =magit= for version control (of course).
+Use =magit= for version control (of course).
 
 *** Magit
-    #+begin_src elisp
-      (use-package transient
-        :custom
-        ((transient-display-buffer-action '(display-buffer-below-selected))
-         (transient-mode-line-format '("%e" mode-line-front-space mode-line-buffer-identification))
-         (transient-show-popup 0.2)))
-
-      (use-package transient-posframe
-        :disabled
-        :if window-system
-        :config
-        (setq transient-posframe-poshandler #'posframe-poshandler-frame-bottom-center)
-        (setq transient-posframe-min-height 0)
-        (setq transient-posframe-refresh 0.1)
-        (transient-posframe-mode))
-    #+end_src
-    Customize magit a bit to my liking.
-    #+begin_src elisp
-      (use-package magit
-        :defer t
-        :bind
-        ("C-x g" . magit-status)
-        :custom
-        ((ediff-diff-options "-w")
-         (ediff-split-window-function #'split-window-horizontally)
-         (ediff-window-setup-function #'ediff-setup-windows-plain)
-         (magit-display-buffer-function #'magit-display-buffer-fullcolumn-most-v1))
-        ;; :config
-        ;; (use-package forge
-        ;;   :after magit)
-        ;; (use-package magithub
-        ;;   :after magit
-        ;;   :ensure t
-        ;;   :config (magithub-feature-autoinject t))
-        )
-    #+end_src
+#+begin_src elisp
+  (use-package transient
+    :custom
+    ((transient-display-buffer-action '(display-buffer-below-selected))
+     (transient-mode-line-format '("%e" mode-line-front-space mode-line-buffer-identification))
+     (transient-show-popup 0.2)))
+  
+  (use-package transient-posframe
+    :disabled
+    :if (display-graphic-p)
+    :config
+    (setq transient-posframe-poshandler #'posframe-poshandler-frame-bottom-center)
+    (setq transient-posframe-min-height 0)
+    (setq transient-posframe-refresh 0.1)
+    (transient-posframe-mode))
+#+end_src
+Customize magit a bit to my liking.
+#+begin_src elisp
+  (use-package magit
+    :defer t
+    :bind
+    ("C-x g" . magit-status)
+    :custom
+    ((ediff-diff-options "-w")
+     (ediff-split-window-function #'split-window-horizontally)
+     (ediff-window-setup-function #'ediff-setup-windows-plain)
+     (magit-display-buffer-function #'magit-display-buffer-fullcolumn-most-v1))
+    ;; :config
+    ;; (use-package forge
+    ;;   :after magit)
+    ;; (use-package magithub
+    ;;   :after magit
+    ;;   :ensure t
+    ;;   :config (magithub-feature-autoinject t))
+    )
+#+end_src
 
 *** Git gutter
-    Subtly show diff info on the margin. Works with both terminal and graphic Emacs.
-    #+begin_src elisp
-      (use-package git-gutter
-        :init
-        (defvar jd--git-gutter-sign "|")
-        :custom
-        ((git-gutter:added-sign jd--git-gutter-sign)
-         (git-gutter:modified-sign jd--git-gutter-sign)
-         (git-gutter:deleted-sign jd--git-gutter-sign))
-        :config
-        (set-face-attribute 'git-gutter:added nil :bold t)
-        (set-face-attribute 'git-gutter:deleted nil :bold t)
-        (set-face-attribute 'git-gutter:modified nil :bold t)
-        (when (featurep 'modus-themes)
-          (defun jd:fix-git-gutter ()
-            (interactive)
-            (set-face-attribute 'git-gutter:added nil :foreground (face-attribute 'modus-themes-fringe-green :background))
-            (set-face-attribute 'git-gutter:deleted nil :foreground (face-attribute 'modus-themes-fringe-red :background))
-            (set-face-attribute 'git-gutter:modified nil :foreground (face-attribute 'modus-themes-fringe-yellow :background))
-            (set-face-attribute 'git-gutter:added nil :background (face-attribute 'fringe :background))
-            (set-face-attribute 'git-gutter:deleted nil :background (face-attribute 'fringe :background))
-            (set-face-attribute 'git-gutter:modified nil :background (face-attribute 'fringe :background)))
-          (add-hook 'modus-themes-after-load-theme-hook 'jd:fix-git-gutter)
-          (jd:fix-git-gutter))
-        (global-git-gutter-mode))
-
-      (use-package git-gutter-fringe
-        :if window-system
-        :config
-        (define-fringe-bitmap 'git-gutter-fr:added
-          [56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56]
-          nil nil 'center)
-        (define-fringe-bitmap 'git-gutter-fr:modified
-          [56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56]
-          nil nil 'center)
-        (define-fringe-bitmap 'git-gutter-fr:deleted
-          [0 0 0 0 0 0 0 0 0 0 0 1 3 7 15 31 63 127]
-          nil nil 'center)
-        (when (featurep 'modus-themes)
-          (defun jd:fix-git-gutter-fr ()
-            (interactive)
-            (set-face-attribute 'git-gutter-fr:added nil :foreground (face-attribute 'modus-themes-fringe-green :background))
-            (set-face-attribute 'git-gutter-fr:deleted nil :foreground (face-attribute 'modus-themes-fringe-red :background))
-            (set-face-attribute 'git-gutter-fr:modified nil :foreground (face-attribute 'modus-themes-fringe-yellow :background))
-            (set-face-attribute 'git-gutter-fr:added nil :background (face-attribute 'fringe :background))
-            (set-face-attribute 'git-gutter-fr:deleted nil :background (face-attribute 'fringe :background))
-            (set-face-attribute 'git-gutter-fr:modified nil :background (face-attribute 'fringe :background)))
-          (add-hook 'modus-themes-after-load-theme-hook 'jd:fix-git-gutter-fr)
-          (jd:fix-git-gutter-fr)))
-    #+end_src
+Subtly show diff info on the margin. Works with both terminal and graphic Emacs.
+#+begin_src elisp
+  (use-package git-gutter
+    :init
+    (defvar jd--git-gutter-sign "|")
+    :custom
+    ((git-gutter:added-sign jd--git-gutter-sign)
+     (git-gutter:modified-sign jd--git-gutter-sign)
+     (git-gutter:deleted-sign jd--git-gutter-sign))
+    :config
+    (set-face-attribute 'git-gutter:added nil :bold t)
+    (set-face-attribute 'git-gutter:deleted nil :bold t)
+    (set-face-attribute 'git-gutter:modified nil :bold t)
+    (when (featurep 'modus-themes)
+      (defun jd:fix-git-gutter ()
+        (interactive)
+        (set-face-attribute 'git-gutter:added nil :foreground (face-attribute 'modus-themes-fringe-green :background))
+        (set-face-attribute 'git-gutter:deleted nil :foreground (face-attribute 'modus-themes-fringe-red :background))
+        (set-face-attribute 'git-gutter:modified nil :foreground (face-attribute 'modus-themes-fringe-yellow :background))
+        (set-face-attribute 'git-gutter:added nil :background (face-attribute 'fringe :background))
+        (set-face-attribute 'git-gutter:deleted nil :background (face-attribute 'fringe :background))
+        (set-face-attribute 'git-gutter:modified nil :background (face-attribute 'fringe :background)))
+      (add-hook 'modus-themes-after-load-theme-hook 'jd:fix-git-gutter)
+      (jd:fix-git-gutter))
+    (global-git-gutter-mode))
+  
+  (use-package git-gutter-fringe
+    :if (display-graphic-p)
+    :config
+    (define-fringe-bitmap 'git-gutter-fr:added
+      [56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56]
+      nil nil 'center)
+    (define-fringe-bitmap 'git-gutter-fr:modified
+      [56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56 56]
+      nil nil 'center)
+    (define-fringe-bitmap 'git-gutter-fr:deleted
+      [0 0 0 0 0 0 0 0 0 0 0 1 3 7 15 31 63 127]
+      nil nil 'center)
+    (when (featurep 'modus-themes)
+      (defun jd:fix-git-gutter-fr ()
+        (interactive)
+        (set-face-attribute 'git-gutter-fr:added nil :foreground (face-attribute 'modus-themes-fringe-green :background))
+        (set-face-attribute 'git-gutter-fr:deleted nil :foreground (face-attribute 'modus-themes-fringe-red :background))
+        (set-face-attribute 'git-gutter-fr:modified nil :foreground (face-attribute 'modus-themes-fringe-yellow :background))
+        (set-face-attribute 'git-gutter-fr:added nil :background (face-attribute 'fringe :background))
+        (set-face-attribute 'git-gutter-fr:deleted nil :background (face-attribute 'fringe :background))
+        (set-face-attribute 'git-gutter-fr:modified nil :background (face-attribute 'fringe :background)))
+      (add-hook 'modus-themes-after-load-theme-hook 'jd:fix-git-gutter-fr)
+      (jd:fix-git-gutter-fr)))
+#+end_src
 
 ** Editing
 *** Yasnippet
-    Useful snippets. Also helps with company mode completion.
-    #+begin_src elisp
-      (use-package yasnippet
-        :config
-        (yas-global-mode t))
-    #+end_src
+Useful snippets. Also helps with company mode completion.
+#+begin_src elisp
+  (use-package yasnippet
+    :config
+    (yas-global-mode t))
+#+end_src
 
 *** Company
-    Complete anything!
+Complete anything!
 
-    In gud-mode, we don't want company to auto show up, since it makes
-    things super laggy. Define a function to disable it.
-    #+begin_src elisp
-      (defun jd:disable-company-idle-delay ()
-        (setq-local company-idle-delay nil))
-    #+end_src
+In gud-mode, we don't want company to auto show up, since it makes
+things super laggy. Define a function to disable it.
+#+begin_src elisp
+  (defun jd:disable-company-idle-delay ()
+    (setq-local company-idle-delay nil))
+#+end_src
 
-    #+begin_src elisp
-      (use-package company
-        :demand
-        :custom
-        ((company-idle-delay 0.05)
-         (company-show-numbers t)
-         (company-minimum-prefix-length 2)
-         (company-tooltip-align-annotations t)
-         (company-tooltip-maximum-width 120))
-        :bind
-        (("C-M-i" . company-complete)
-         ("C-<tab>" . company-complete)
-         :map company-active-map
-         ("C-n" . company-select-next)
-         ("C-p" . company-select-previous))
-        :hook
-        ((after-init . global-company-mode)
-         (gud-mode . jd:disable-company-idle-delay))
-        :config
-        (dotimes (i 10)
-          (define-key company-active-map (kbd (format "C-%d" i)) 'company-complete-number)))
-    #+end_src
+#+begin_src elisp
+  (use-package company
+    :demand
+    :custom
+    ((company-idle-delay 0.1)
+     (company-show-numbers t)
+     (company-minimum-prefix-length 2)
+     (company-tooltip-align-annotations t)
+     (company-tooltip-maximum-width 120))
+    :bind
+    (("C-M-i" . company-complete)
+     ("C-<tab>" . company-complete)
+     :map company-active-map
+     ("C-n" . company-select-next)
+     ("C-p" . company-select-previous))
+    :hook
+    ((after-init . global-company-mode)
+     (gud-mode . jd:disable-company-idle-delay))
+    :config
+    (dotimes (i 10)
+      (define-key company-active-map (kbd (format "C-%d" i)) 'company-complete-number)))
+  
+  (setq tab-always-indent 'complete)
+#+end_src
 
-    Use =company-box= if we are not using TTY Emacs.
-    #+begin_src elisp
-      (use-package company-box
-        :if window-system
-        :hook (company-mode . company-box-mode)
-        :config
-        (setq company-box-doc-delay 1.5)
-        (add-to-list 'company-box-frame-parameters '(tab-bar-lines . 0))
-        (add-to-list 'company-box-frame-parameters '(tab-bar-lines-keep-state . t))
-        (setq company-box-doc-frame-parameters '((internal-border-width . 1))))
-    #+end_src
+Use =company-box= if we are not using TTY Emacs.
+#+begin_src elisp
+  (use-package company-box
+    :if (display-graphic-p)
+    :hook (company-mode . company-box-mode)
+    :config
+    (setq company-box-doc-delay 1.5)
+    (add-to-list 'company-box-frame-parameters '(tab-bar-lines . 0))
+    (add-to-list 'company-box-frame-parameters '(tab-bar-lines-keep-state . t))
+    (setq company-box-doc-frame-parameters '((internal-border-width . 1))))
+#+end_src
 
 *** Spell Check
-    Use flyspell for spell check. =wucuo.el= helps improving things for
-    on-the-fly checking, but can be annoying at times for programming, as
-    we do not always use (combinations of) full words.
+Use flyspell for spell check. =wucuo.el= helps improving things for
+on-the-fly checking, but can be annoying at times for programming, as
+we do not always use (combinations of) full words.
 
-    #+begin_src elisp
-      (use-package wucuo
-        :hook
-        ((text-mode . wucuo-start))
-        :config
-        (cond
-         ((executable-find "aspell")
-          ;; you may also need `ispell-extra-args'
-          (setq ispell-program-name "aspell"))
-         ((executable-find "hunspell")
-          (setq ispell-program-name "hunspell"))))
-    #+end_src
+#+begin_src elisp
+  (use-package wucuo
+    :hook
+    ((text-mode . wucuo-start))
+    :config
+    (cond
+     ((executable-find "aspell")
+      ;; you may also need `ispell-extra-args'
+      (setq ispell-program-name "aspell"))
+     ((executable-find "hunspell")
+      (setq ispell-program-name "hunspell"))))
+#+end_src
 
-    Use =flyspell-correct.el= for easy batch correction. =C-.= and =C-,=
-    are set manually to nil to avoid conflicts with my xref shortcuts.
+Use =flyspell-correct.el= for easy batch correction. =C-.= and =C-,=
+are set manually to nil to avoid conflicts with my xref shortcuts.
 
-    #+begin_src elisp
-      (use-package flyspell-correct
-        :bind
-        (:map flyspell-mode-map
-              ("C-;" . flyspell-correct-wrapper)
-              ("C-," . nil)
-              ("C-." . nil)))
-    #+end_src
+#+begin_src elisp
+  (use-package flyspell-correct
+    :bind
+    (:map flyspell-mode-map
+          ("C-;" . flyspell-correct-wrapper)
+          ("C-," . nil)
+          ("C-." . nil)))
+#+end_src
 
 *** Undo-tree
-    Helps with a visualized undo tree.
+Helps with a visualized undo tree.
 
-    #+begin_src elisp
-      (use-package undo-tree
-        :config
-        (global-undo-tree-mode))
-    #+end_src
+#+begin_src elisp
+  (use-package undo-tree
+    :config
+    (global-undo-tree-mode))
+#+end_src
 
 *** Smartparens
-    Automatically highlights and inserts parens. Add support for curly
-    braces (automatically add a newline there) and c comment pairs.
+Automatically highlights and inserts parens. Add support for curly
+braces (automatically add a newline there) and c comment pairs.
 
-    #+begin_src elisp
-      (use-package smartparens
-        :config
-        (sp-with-modes
-            '(c-mode c++-mode)
-          (sp-local-pair "{" nil
-                         :post-handlers '(("||\n[i]" "RET")))
-          (sp-local-pair "/*" "*/"))
-        (smartparens-global-mode t)
-        (show-smartparens-global-mode t))
-    #+end_src
+#+begin_src elisp
+  (use-package smartparens
+    :config
+    (sp-with-modes
+        '(c-mode c++-mode)
+      (sp-local-pair "{" nil
+                     :post-handlers '(("||\n[i]" "RET")))
+      (sp-local-pair "/*" "*/"))
+    (smartparens-global-mode t)
+    (show-smartparens-global-mode t))
+#+end_src
 
 *** Multiple cursors
-    #+begin_src elisp
-      (use-package multiple-cursors
-        :bind
-        (("C-S-c C-S-c" . mc/edit-lines)
-         ("C->" . mc/mark-next-like-this)
-         ("C-<" . mc/mark-previous-like-this)
-         ("C-c C-<" . mc/mark-all-like-this)))
-    #+end_src
+#+begin_src elisp
+  (use-package multiple-cursors
+    :bind
+    (("C-S-c C-S-c" . mc/edit-lines)
+     ("C->" . mc/mark-next-like-this)
+     ("C-<" . mc/mark-previous-like-this)
+     ("C-c C-<" . mc/mark-all-like-this)))
+#+end_src
 
 *** Others
-    Set the fill column width to be 80 for the general case.
-    #+begin_src elisp
-      (setq-default fill-column 80)
-      (setq column-number-mode t)
-    #+end_src
+Set the fill column width to be 80 for the general case.
+#+begin_src elisp
+  (setq-default fill-column 80)
+  (setq column-number-mode t)
+#+end_src
 
 ** EAF
-   EAF feels promising, but I don't particularly like it because it constantly
-   flickers when I resize windows, and it does not just work without all these
-   dependencies. Only load it if needed.
-   #+begin_src elisp
-     (defun jd:load-eaf ()
-       (interactive)
-       (use-package epc)
-       (use-package eaf
-         :straight (:files
-                    (:defaults "eaf.py" "setup.py" "core" "app" "docker" "install-eaf.sh")
-                    :no-byte-compile t)))
-   #+end_src
+EAF feels promising, but I don't particularly like it because it constantly
+flickers when I resize windows, and it does not just work without all these
+dependencies. Only load it if needed.
+#+begin_src elisp
+  (defun jd:load-eaf ()
+    (interactive)
+    (use-package epc)
+    (use-package eaf
+      :straight (:files
+                 (:defaults "eaf.py" "setup.py" "core" "app" "docker" "install-eaf.sh")
+                 :no-byte-compile t)))
+#+end_src
 
 ** Latex
-   Use =auctex=.
-   #+begin_src elisp
-     (use-package auctex
-       :hook
-       (tex-mode . TeX-mode)
-       (TeX-mode . TeX-source-correlate-mode))
-   #+end_src
+Use =auctex=.
+#+begin_src elisp
+  (use-package auctex
+    :hook
+    (tex-mode . TeX-mode)
+    (TeX-mode . TeX-source-correlate-mode))
+#+end_src
 
 ** Org-mode
-   I am quite new to org mode, but there are some things already quite useful.
+I am quite new to org mode, but there are some things already quite useful.
 
 *** Install orgmode
-    Emacs comes with a default yet quite old version of org. Install the new one.
-    =straight.el= helps with installing it at the first time.
+Emacs comes with a default yet quite old version of org. Install the new one.
+=straight.el= helps with installing it at the first time.
 
-    #+begin_src elisp
-      (use-package org
-        :commands
-        (org-mode org-agenda org-store-link)
-        :mode
-        (("\\.org_archive\\'" . org-mode)
-         ("\\.org\\'" . org-mode))
-        :custom
-        (org-return-follows-link t)
-        (org-imenu-depth 4)
-        :config
-        (require 'org-tempo)
-        (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.6))
-        (setq org-todo-keywords
-              '((sequence "TODO" "DOING" "WAITING" "|" "DONE" "ABANDONED"))))
-    #+end_src
+#+begin_src elisp
+  (use-package org
+    :commands
+    (org-mode org-agenda org-store-link)
+    :mode
+    (("\\.org_archive\\'" . org-mode)
+     ("\\.org\\'" . org-mode))
+    :custom
+    (org-return-follows-link t)
+    (org-imenu-depth 4)
+    (org-startup-indented t)
+    :config
+    (require 'org-tempo)
+    (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.6))
+    (setq org-todo-keywords
+          '((sequence "TODO" "DOING" "WAITING" "|" "DONE" "ABANDONED"))))
+#+end_src
 
-    Change the org files here if needed.
-    #+begin_src elisp
-      (setq org-agenda-files '("~/MyOrgNotes/agenda.org"
-                               "~/MyOrgNotes/emacs_todos.org"))
-    #+end_src
+Change the org files here if needed.
+#+begin_src elisp
+  (setq org-agenda-files '("~/MyOrgNotes/agenda.org"
+                           "~/MyOrgNotes/emacs_todos.org"))
+#+end_src
 
 *** TOC
-    Auto insert a TOC when saving. Very helpful for GitHub org files.
-    #+begin_src elisp
-      (use-package toc-org
-        :hook
-        (org-mode . toc-org-mode))
-    #+end_src
+Auto insert a TOC when saving. Very helpful for GitHub org files.
+#+begin_src elisp
+  (use-package toc-org
+    :hook
+    (org-mode . toc-org-mode))
+#+end_src
 
 *** Org superstar
-    Beautify the bullets
-    #+begin_src elisp
-      (use-package org-superstar
-        :hook
-        ((org-mode . (lambda ()(org-superstar-mode 1)))))
-    #+end_src
+Beautify the bullets
+#+begin_src elisp
+  (use-package org-superstar
+    :hook
+    ((org-mode . (lambda ()(org-superstar-mode 1)))))
+#+end_src
 
 
 ** Programming
-   Setups for programming tools.
+Setups for programming tools.
 *** Xref setup
-    =xref= is the built-in functionality that Emacs uses. I have a few tweaks to
-    make it work better with my work flow.
+=xref= is the built-in functionality that Emacs uses. I have a few tweaks to
+make it work better with my work flow.
 
-    First, define a custom function that allows opening the definition at other
-    window with a prefix argument.
-    #+begin_src elisp
-      (defun jd:xref-find-definitions (arg)
-        "Custom function to find definitions in other window with ARG is non nil."
-        (interactive "P")
-        (let ((current-prefix-arg nil)
-              (xref-prompt-for-identifier nil))
-          (if arg
-              (call-interactively 'xref-find-definitions-other-window)
-            (call-interactively 'xref-find-definitions))))
-    #+end_src
+First, define a custom function that allows opening the definition at other
+window with a prefix argument.
+#+begin_src elisp
+  (defun jd:xref-find-definitions (arg)
+    "Custom function to find definitions in other window with ARG is non nil."
+    (interactive "P")
+    (let ((current-prefix-arg nil)
+          (xref-prompt-for-identifier nil))
+      (if arg
+          (call-interactively 'xref-find-definitions-other-window)
+        (call-interactively 'xref-find-definitions))))
+#+end_src
 
-    Similarly, define a custom function that do not prompt the user when the
-    find reference function has only just one result.
-    #+begin_src elisp
-      (defun jd:xref-find-references (arg)
-        "Find references with no prefix arg."
-        (interactive "p")
-        (let ((current-prefix-arg nil)
-              (xref-prompt-for-identifier (> arg 1)))
-          (call-interactively 'xref-find-references)))
-    #+end_src
+Similarly, define a custom function that do not prompt the user when the
+find reference function has only just one result.
+#+begin_src elisp
+  (defun jd:xref-find-references (arg)
+    "Find references with no prefix arg."
+    (interactive "p")
+    (let ((current-prefix-arg nil)
+          (xref-prompt-for-identifier (> arg 1)))
+      (call-interactively 'xref-find-references)))
+#+end_src
 
-    By default, xref has a marker ring that allows users to trace back. Add a
-    new marker ring here to allow tracing forward after going back (like a
-    redo).
-    #+begin_src elisp
+By default, xref has a marker ring that allows users to trace back. Add a
+new marker ring here to allow tracing forward after going back (like a
+redo).
+#+begin_src elisp
+  
+#+end_src
 
-    #+end_src
-
-    Finally set up xref with the above tweaks. The key mappings are a bit
-    different with the default ones.
-    #+begin_src elisp
-      (use-package xref
-        :demand t
-        :bind
-        (("M-." . jd:xref-find-definitions)
-         ("M-," . jd:xref-find-references)
-         ("C-," . xref-pop-marker-stack)
-         ("C-." . jd:xref-pop-fwd-marker-stack))
-        :config
-        (defvar jd--xref-forward-marker-ring)
-        (setq jd--xref-forward-marker-ring (make-ring xref-marker-ring-length))
-
-        (defun jd:xref-clear-fwd-marker-ring ()
-          "Clear the forward marker ring for xref."
-          (when (not (ring-empty-p jd--xref-forward-marker-ring))
-            (setq jd--xref-forward-marker-ring (make-ring xref-marker-ring-length))))
-
-        (defun jd:xref-pop-marker-stack ()
-          "Pop a marker from xref marker ring, and save it in the forward marker ring."
-          (interactive)
-          (let ((ring xref--marker-ring))
-            (when (ring-empty-p ring)
-              (user-error "Marker stack is empty"))
-            (let ((marker (ring-remove ring 0)))
-              (ring-insert jd--xref-forward-marker-ring (point-marker))
-              (switch-to-buffer (or (marker-buffer marker)
-                                    (user-error "The marked buffer as been deleted")))
-              (goto-char (marker-position marker))
-              (set-marker marker nil nil)
-              (run-hooks 'xref-after-return-hook))))
-
-        (defun jd:xref-pop-fwd-marker-stack ()
-          "Pop the marker from the xref fwd marker stack, and save in the xref marker ring."
-          (interactive)
-          (let ((ring jd--xref-forward-marker-ring))
-            (when (ring-empty-p ring)
-              (user-error "Forward marker stack is empty"))
-            (let ((marker (ring-remove ring 0)))
-              (ring-insert xref--marker-ring (point-marker))
-              (switch-to-buffer (or (marker-buffer marker)
-                                    (user-error "The marked buffer as been deleted")))
-              (goto-char (marker-position marker))
-              (set-marker marker nil nil)
-              (run-hooks 'xref-after-return-hook))))
-        (advice-add 'xref-pop-marker-stack :override #'jd:xref-pop-marker-stack)
-        (advice-add 'xref-push-marker-stack :before #'jd:xref-clear-fwd-marker-ring))
-    #+end_src
+Finally set up xref with the above tweaks. The key mappings are a bit
+different with the default ones.
+#+begin_src elisp
+  (use-package xref
+    :demand t
+    :bind
+    (("M-." . jd:xref-find-definitions)
+     ("M-," . jd:xref-find-references)
+     ("C-," . xref-pop-marker-stack)
+     ("C-." . jd:xref-pop-fwd-marker-stack))
+    :config
+    (defvar jd--xref-forward-marker-ring)
+    (setq jd--xref-forward-marker-ring (make-ring xref-marker-ring-length))
+  
+    (defun jd:xref-clear-fwd-marker-ring ()
+      "Clear the forward marker ring for xref."
+      (when (not (ring-empty-p jd--xref-forward-marker-ring))
+        (setq jd--xref-forward-marker-ring (make-ring xref-marker-ring-length))))
+  
+    (defun jd:xref-pop-marker-stack ()
+      "Pop a marker from xref marker ring, and save it in the forward marker ring."
+      (interactive)
+      (let ((ring xref--marker-ring))
+        (when (ring-empty-p ring)
+          (user-error "Marker stack is empty"))
+        (let ((marker (ring-remove ring 0)))
+          (ring-insert jd--xref-forward-marker-ring (point-marker))
+          (switch-to-buffer (or (marker-buffer marker)
+                                (user-error "The marked buffer as been deleted")))
+          (goto-char (marker-position marker))
+          (set-marker marker nil nil)
+          (run-hooks 'xref-after-return-hook))))
+  
+    (defun jd:xref-pop-fwd-marker-stack ()
+      "Pop the marker from the xref fwd marker stack, and save in the xref marker ring."
+      (interactive)
+      (let ((ring jd--xref-forward-marker-ring))
+        (when (ring-empty-p ring)
+          (user-error "Forward marker stack is empty"))
+        (let ((marker (ring-remove ring 0)))
+          (ring-insert xref--marker-ring (point-marker))
+          (switch-to-buffer (or (marker-buffer marker)
+                                (user-error "The marked buffer as been deleted")))
+          (goto-char (marker-position marker))
+          (set-marker marker nil nil)
+          (run-hooks 'xref-after-return-hook))))
+    (advice-add 'xref-pop-marker-stack :override #'jd:xref-pop-marker-stack)
+    (advice-add 'xref-push-marker-stack :before #'jd:xref-clear-fwd-marker-ring))
+#+end_src
 
 *** eldoc
-    Set up eldoc so it does not automatically use the echo buffer, but only do so
-    when asked.
+Set up eldoc so it does not automatically use the echo buffer, but only do so
+when asked.
 
-    #+begin_src elisp
-      (use-package eldoc
-        :init
-        (defun jd:eldoc ()
-          "Ask eldoc to show in the echo area."
-          (interactive)
-          (when eldoc-mode
-            (let ((eldoc-display-functions 'eldoc-display-in-echo-area)
-                  (last-command this-command)
-                  (this-command nil)
-                  (eldoc--last-request-state nil))
-              (eldoc-print-current-symbol-info))))
-        :custom
-        ((eldoc-idle-delay 0.1))
-        :config
-        (load-file "~/.emacs.d/straight/repos/eldoc/eldoc.el")
-        (setq eldoc-message-commands
-              (make-vector eldoc-message-commands-table-size 0))
-        (eldoc-add-command "jd:eldoc")
-        :bind
-        (("C-c h" . jd:eldoc))
-        :demand t)
-    #+end_src
+#+begin_src elisp
+  (use-package eldoc
+    :init
+    (defun jd:eldoc ()
+      "Ask eldoc to show in the echo area."
+      (interactive)
+      (when eldoc-mode
+        (let ((eldoc-display-functions 'eldoc-display-in-echo-area)
+              (last-command this-command)
+              (this-command nil)
+              (eldoc--last-request-state nil))
+          (eldoc-print-current-symbol-info))))
+    :custom
+    ((eldoc-idle-delay 0.1))
+    :config
+    ;; (load-file "~/.emacs.d/straight/repos/eldoc/eldoc.el")
+    ;; (setq eldoc-message-commands
+    ;; (make-vector eldoc-message-commands-table-size 0))
+    ;; (eldoc-add-command "jd:eldoc")
+    ;; :bind
+    ;; (("C-c h" . jd:eldoc))
+    :demand t
+    )
+#+end_src
 
-*** Eglot
-    =eglot= is an LSP client that uses mostly built-in Emacs functionalities.
-    It is much easier to manage than =lsp-mode= and more light-weight.
-    #+begin_src elisp
-      (use-package project)
-      (use-package eglot
-        :custom
-        ((eglot-send-changes-idle-time 0.2))
-        :hook
-        ((c-mode . eglot-ensure)
-         (c++-mode . eglot-ensure))
-        :config
-        (add-to-list 'eglot-server-programs '(c-mode "clangd"))
-        (add-to-list 'eglot-server-programs '(c++-mode "clangd"))
-        (set-face-attribute 'eglot-highlight-symbol-face nil :bold t)
-        (set-face-attribute 'eglot-highlight-symbol-face nil :inherit nil))
-    #+end_src
+*** COMMENT Eglot
+=eglot= is an LSP client that uses mostly built-in Emacs functionalities.
+It is much easier to manage than =lsp-mode= and more light-weight.
+#+begin_src elisp
+  (use-package project)
+  (use-package eglot
+    :custom
+    ((eglot-send-changes-idle-time 0.2))
+    :hook
+    ((c-mode . eglot-ensure)
+     (c++-mode . eglot-ensure))
+    :config
+    (add-to-list 'eglot-server-programs '(c-mode "clangd"))
+    (add-to-list 'eglot-server-programs '(c++-mode "clangd"))
+    (set-face-attribute 'eglot-highlight-symbol-face nil :bold t)
+    (set-face-attribute 'eglot-highlight-symbol-face nil :inherit nil))
+#+end_src
+
+*** lsp-mode
+#+begin_src elisp
+  (use-package lsp-mode
+    :init
+    (setq lsp-auto-configure t)
+    (setq lsp-clients-clangd-executable "clangd-11")
+    :hook
+    ((c-mode . lsp)
+     (c++-mode . lsp)
+     (lsp-mode . lsp-enable-which-key-integration))
+    :config
+    (setq lsp-idle-delay 0.1)
+    (setq lsp-modeline-diagnostics-enable nil) ;; we have flymake to show errors
+    (setq lsp-modeline-code-actions-enable nil)
+    (setq lsp-headerline-breadcrumb-enable-diagnostics nil)
+    (unless (display-graphic-p)
+      (setq lsp-headerline-breadcrumb-icons-enable nil))
+    (use-package lsp-ui
+      :config
+      (setq lsp-ui-doc-show-with-cursor nil)
+      (setq lsp-ui-doc-show-with-mouse nil)
+      (setq lsp-ui-doc-enable nil)
+      )
+    (use-package lsp-treemacs))
+#+end_src
 
 *** Compiling
-    #+begin_src elisp
-      (setq compilation-scroll-output 'first-error)
-      (setq compilation-auto-jump-to-first-error t)
-      (setq compilation-skip-threshold 1)
-    #+end_src
+#+begin_src elisp
+  (setq compilation-scroll-output 'first-error)
+  (setq compilation-auto-jump-to-first-error t)
+  (setq compilation-skip-threshold 1)
+#+end_src
 
-    Define a function to auto-close compilation window if compilation is successful.
-    #+begin_src elisp
-      (defcustom jd--compile-autoclose-time 1 "Seconds to wait before auto close the compilation buffer.")
-      (defun jd:compile-auto-close (buffer string)
-        "Hook to auto close compilation BUFFER. STRING is the returned message."
-        (cond ((and (string-match "finished" string) (string-equal (buffer-name) "*compilation*"))
-               (message "Build may be successful: closing window.")
-               (run-with-timer jd--compile-autoclose-time nil 'delete-window (get-buffer-window buffer t)))
-              (t (message "Compilation exited abnormally: %s" (string-trim string)))))
+Define a function to auto-close compilation window if compilation is successful.
+#+begin_src elisp
+  (defcustom jd--compile-autoclose-time 1 "Seconds to wait before auto close the compilation buffer.")
+  (defun jd:compile-auto-close (buffer string)
+    "Hook to auto close compilation BUFFER. STRING is the returned message."
+    (cond ((and (string-match "finished" string) (string-equal (buffer-name) "*compilation*"))
+           (message "Build may be successful: closing window.")
+           (run-with-timer jd--compile-autoclose-time nil 'delete-window (get-buffer-window buffer t)))
+          (t (message "Compilation exited abnormally: %s" (string-trim string)))))
+  
+  (push 'jd:compile-auto-close compilation-finish-functions)
+#+end_src
 
-      (push 'jd:compile-auto-close compilation-finish-functions)
-    #+end_src
+Define a function to toggle the skip threshold of compilation buffer:
+#+begin_src elisp
+  (defun jd:toggle-compile-skip-thresh()
+    "Toggle the compilation skip threshold."
+    (interactive)
+    (if (eq compilation-skip-threshold 1)
+        (progn (setq compilation-skip-threshold 2)
+               (message "Skip threshold set to errors"))
+      (progn (setq compilation-skip-threshold 1)
+             (message "Skip threshold set to warnings"))))
+#+end_src
 
-    Define a function to toggle the skip threshold of compilation buffer:
-    #+begin_src elisp
-      (defun jd:toggle-compile-skip-thresh()
-        "Toggle the compilation skip threshold."
-        (interactive)
-        (if (eq compilation-skip-threshold 1)
-            (progn (setq compilation-skip-threshold 2)
-                   (message "Skip threshold set to errors"))
-          (progn (setq compilation-skip-threshold 1)
-                 (message "Skip threshold set to warnings"))))
-    #+end_src
-
-    Support xterm coloring in compilation buffers:
-    #+begin_src elisp
-      (use-package xterm-color)
-      (setq compilation-environment '("TERM=xterm-256color"))
-      (defun jd:advice-compilation-filter (f proc string)
-        (funcall f proc (xterm-color-filter string)))
-      (advice-add 'compilation-filter :around #'jd:advice-compilation-filter)
-    #+end_src
+Support xterm coloring in compilation buffers:
+#+begin_src elisp
+  ;; (use-package xterm-color)
+  ;; (setq compilation-environment '("TERM=xterm-256color"))
+  ;; (defun jd:advice-compilation-filter (f proc string)
+  ;;   (funcall f proc (xterm-color-filter string)))
+  ;; (advice-add 'compilation-filter :around #'jd:advice-compilation-filter)
+  
+  (require 'ansi-color)
+  (defun jd:colorize-compilation-buffer ()
+    (toggle-read-only)
+    (ansi-color-apply-on-region compilation-filter-start (point))
+    (toggle-read-only))
+  (add-hook 'compilation-filter-hook 'jd:colorize-compilation-buffer)
+#+end_src
 
 *** C/C++ programming
-    Clangd language server is used with =eglot= for C programming.
+Clangd language server is used with =eglot= for C programming.
 
 **** Clang-format
-     Set up clang format so it auto-formats on save, but only for c mode.
-     This is not needed with =lsp-mode= or =eglot=.
+Set up clang format so it auto-formats on save, but only for c mode.
+This is not needed with =lsp-mode= or =eglot=.
 
-     #+begin_src elisp
-       (use-package clang-format
-         :custom
-         ((clang-format-style "file")
-          (clang-format-executable "clang-format-7")))
-     #+end_src
+#+begin_src elisp
+  (use-package clang-format
+    :custom
+    ((clang-format-style "file")
+     (clang-format-executable "clang-format-7")))
+#+end_src
 
 **** Others
-     Prefer using =//= instead of =/* */=.
-     #+begin_src elisp
-       (add-hook 'c-mode-common-hook (lambda ()
-                                       (c-toggle-comment-style -1)))
-     #+end_src
+Prefer using =//= instead of =/* */=.
+#+begin_src elisp
+  (add-hook 'c-mode-common-hook (lambda ()
+                                  (c-toggle-comment-style -1)))
+#+end_src
 
 *** GDB set up
-    Use gdb many windows. But do not pop-up.
-    #+begin_src elisp
-      (use-package gdb-mi
-        :custom
-        ((gdb-display-io-nopopup t)
-         (gdb-many-windows t)
-         (gdb-restore-window-configuration-after-quit t)))
-    #+end_src
+Use gdb many windows. But do not pop-up.
+#+begin_src elisp
+  (use-package gdb-mi
+    :custom
+    ((gdb-display-io-nopopup t)
+     (gdb-many-windows t)
+     (gdb-restore-window-configuration-after-quit t)))
+#+end_src
 
 *** Others
-    Display line number mode for programming. This is in conflict with company
-    mode in terminals. Disabled for now.
-    #+begin_src elisp
-      (use-package display-line-numbers
-        :if window-system
-        :demand t
-        :custom
-        (display-line-numbers-width 4)
-        :hook
-        ((prog-mode . display-line-numbers-mode)))
-    #+end_src
+Display line number mode for programming. This is in conflict with company
+mode in terminals. Disabled for now.
+#+begin_src elisp
+  (use-package display-line-numbers
+    :if (display-graphic-p)
+    :demand t
+    :custom
+    (display-line-numbers-width 4)
+    :hook
+    ((prog-mode . display-line-numbers-mode)))
+#+end_src
 
-    Display the current function name.
+Display the current function name.
 
-    #+begin_src elisp
-      (defun jd:display-which-func ()
-        (interactive)
-        (message (which-function)))
-      (use-package which-func
-        :demand t
-        :bind
-        (("C-c f" . jd:display-which-func)))
-    #+end_src
+#+begin_src elisp
+  (defun jd:display-which-func ()
+    (interactive)
+    (message (which-function)))
+  (use-package which-func
+    :demand t
+    :bind
+    (("C-c f" . jd:display-which-func)))
+#+end_src
 
-    Display the flymake fringe indicators on the right.
-    #+begin_src elisp
-      (setq flymake-fringe-indicator-position 'right-fringe)
-    #+end_src
+Display the flymake fringe indicators on the right.
+#+begin_src elisp
+  (setq flymake-fringe-indicator-position 'right-fringe)
+#+end_src
 
 ** Terminal/Shell
-   =vterm= emulates the terminal well and enables many Emacs key-bindings
-   as a buffer.
-   #+begin_src elisp
-     (defun vterm-counsel-yank-pop-action (orig-fun &rest args)
-       (if (equal major-mode 'vterm-mode)
-           (let ((inhibit-read-only t)
-                 (yank-undo-function (lambda (_start _end) (vterm-undo))))
-             (cl-letf (((symbol-function 'insert-for-yank)
-                        (lambda (str) (vterm-send-string str t))))
-               (apply orig-fun args)))
-         (apply orig-fun args)))
-
-     (use-package vterm
-       :commands vterm
-       :if module-file-suffix
-       :custom
-       (vterm-kill-buffer-on-exit t)
-       :config
-       (advice-add 'counsel-yank-pop-action :around #'vterm-counsel-yank-pop-action))
-   #+end_src
+=vterm= emulates the terminal well and enables many Emacs key-bindings
+as a buffer.
+#+begin_src elisp
+  (defun vterm-counsel-yank-pop-action (orig-fun &rest args)
+    (if (equal major-mode 'vterm-mode)
+        (let ((inhibit-read-only t)
+              (yank-undo-function (lambda (_start _end) (vterm-undo))))
+          (cl-letf (((symbol-function 'insert-for-yank)
+                     (lambda (str) (vterm-send-string str t))))
+            (apply orig-fun args)))
+      (apply orig-fun args)))
+  
+  (use-package vterm
+    :commands vterm
+    :if module-file-suffix
+    :custom
+    (vterm-kill-buffer-on-exit t)
+    :config
+    (advice-add 'counsel-yank-pop-action :around #'vterm-counsel-yank-pop-action))
+#+end_src
 
 ** TTY Emacs Specific
 *** Mouse
-    In TTY Emacs, I still want to use mouse sometimes.
-    #+begin_src elisp
-      (unless window-system
-        (xterm-mouse-mode t)
-        (setq mouse-sel-mode t
-              xterm-set-window-title nil))
-    #+end_src
+In TTY Emacs, I still want to use mouse sometimes.
+#+begin_src elisp
+  (unless (display-graphic-p)
+    (xterm-mouse-mode t)
+    (setq mouse-sel-mode t
+          xterm-set-window-title nil))
+#+end_src
 
 *** Clipetty
-    =clipetty= helps transferring the paste board from a tty Emacs to a
-    remote client.
-    #+begin_src elisp
-      (use-package clipetty
-        :bind
-        ("M-w" . clipetty-kill-ring-save))
-    #+end_src
+=clipetty= helps transferring the paste board from a tty Emacs to a
+remote client.
+#+begin_src elisp
+  (use-package clipetty
+    :bind
+    ("M-w" . clipetty-kill-ring-save))
+#+end_src
 
 *** Keys
-    For company mode, we need =C-0= to =C-9=, but their codes are not
-    defined in the key-map.
-    #+begin_src elisp
-      (dotimes (i 10)
-        (define-key input-decode-map (format "\e[%d;5u" (+ i 48)) (kbd (format "C-%d" i))))
-
-      (define-key input-decode-map "\e[96;5u" (kbd "C-`"))
-    #+end_src
+For company mode, we need =C-0= to =C-9=, but their codes are not
+defined in the key-map.
+#+begin_src elisp
+  (dotimes (i 10)
+    (define-key input-decode-map (format "\e[%d;5u" (+ i 48)) (kbd (format "C-%d" i))))
+  
+  (define-key input-decode-map "\e[96;5u" (kbd "C-`"))
+#+end_src
 
 ** Buffer/Window Management
 *** =ace-window=
-    Jumping among windows.
-    #+begin_src elisp
-      (use-package ace-window
-        :bind
-        ("M-o" . ace-window))
-    #+end_src
+Jumping among windows.
+#+begin_src elisp
+  (use-package ace-window
+    :bind
+    ("M-o" . ace-window))
+#+end_src
 
 *** Window movements
-    Use Shift + arrows to move among windows.
-    #+begin_src elisp
-      (windmove-default-keybindings)
-    #+end_src
+Use Shift + arrows to move among windows.
+#+begin_src elisp
+  (windmove-default-keybindings)
+#+end_src
     
 *** Side windows
-    Define the rules for side windows.
+Define the rules for side windows.
 
-    Allow fit window to buffer horizontally. Also resize pixel-wise.
-    #+begin_src elisp
-      (setq fit-window-to-buffer-horizontally t)
-      (setq window-resize-pixelwise t)
-    #+end_src
+Allow fit window to buffer horizontally. Also resize pixel-wise.
+#+begin_src elisp
+  (setq fit-window-to-buffer-horizontally t)
+  (setq window-resize-pixelwise t)
+#+end_src
 
-    Define the function to fit buffer width with constraints.
-    #+begin_src elisp
-      (defcustom jd--fit-width-min-ratio 0.2 "Minimum width of a window to fit to buffer.")
-      (defcustom jd--fit-width-max-ratio 0.5 "Maximum width of a window to fit to buffer.")
+Define the function to fit buffer width with constraints.
+#+begin_src elisp
+  (defcustom jd--fit-width-min-ratio 0.2 "Minimum width of a window to fit to buffer.")
+  (defcustom jd--fit-width-max-ratio 0.5 "Maximum width of a window to fit to buffer.")
+  
+  (defun jd:fit-window-to-buffer-ratio (&optional window)
+    "Fit WINDOW to buffer with ratio constraints."
+    (let ((min-width (ceiling (* (frame-width) jd--fit-width-min-ratio)))
+          (max-width (floor (* (frame-width) jd--fit-width-max-ratio))))
+      (fit-window-to-buffer window nil nil max-width min-width nil)
+      (unless (display-graphic-p) (window-resize window 2 t))))
+#+end_src
 
-      (defun jd:fit-window-to-buffer-ratio (&optional window)
-        "Fit WINDOW to buffer with ratio constraints."
-        (let ((min-width (ceiling (* (frame-width) jd--fit-width-min-ratio)))
-              (max-width (floor (* (frame-width) jd--fit-width-max-ratio))))
-          (fit-window-to-buffer window nil nil max-width min-width nil)
-          (unless (window-system) (window-resize window 2 t))))
-    #+end_src
+Define the variable to determine width with a fixed ratio. (Currently not used).
+#+begin_src elisp
+  (defcustom jd--fixed-width-ratio 0.4 "Fixed width ratio for sidewindows")
+#+end_src
 
-    Define the variable to determine width with a fixed ratio. (Currently not used).
-    #+begin_src elisp
-      (defcustom jd--fixed-width-ratio 0.4 "Fixed width ratio for sidewindows")
-    #+end_src
-
-    Set =display-buffer-alist= to display certain buffers in side windows.
-    #+begin_src elisp
-      (defun jd:side-win-right-or-bottom ()
-                (let ((width (frame-width)))
-                  (if (> width 180)
-                      'right
-                    'bottom)))
-
-      (defun jd:display-buffer-in-side-win-right-or-bot (buffer alist)
-        (let ((dir (jd:side-win-right-or-bottom)))
-          (if (eq dir 'right)
-              (display-buffer-in-side-window
-               buffer
-               `((side . right)
-                 (slot . 1)
-                 (window-width . jd:fit-window-to-buffer-ratio)
-                 (preserve-size . (nil . nil))))
-            (display-buffer-in-side-window
-             buffer
-             `((side . bottom)
-               (slot . 1)
-               (window-height . 0.3)
-               (preserve-size . (nil . nil)))))))
-
-      (defun jd:display-buffer-in-side-win-selected (buffer alist)
-        (let ((window (display-buffer-in-side-window buffer alist)))
-          (select-window window)))
-
-      (setq display-buffer-alist
-            `(("\\*\\(.*[hH]elp.*\\|.*Messages.*\\)\\*"
-               jd:display-buffer-in-side-win-right-or-bot)
-              ("\\*\\(.*undo-tree.*\\)\\*"
-               display-buffer-in-side-window
-               (side . right)
-               (slot . 1)
-               (window-width . jd:fit-window-to-buffer-ratio)
-               (preserve-size . (nil . nil)))
-              ("\\*\\(compilation\\|Python Check\\|code-review-gerrit-comment\\)\\*"
-               display-buffer-in-side-window
-               (side . bottom)
-               (slot . -1)
-               (window-height . 0.3)
-               (preserve-size . (nil . nil)))
-              ("\\(.*vterm.*\\|.*term.*\\|.*shell.*\\)"
-               jd:display-buffer-in-side-win-selected
-               (side . bottom)
-               (slot . 0)
-               (window-height . 0.3)
-               (preserve-size . (nil . nil)))))
-    #+end_src
+Set =display-buffer-alist= to display certain buffers in side windows.
+#+begin_src elisp
+  (defun jd:side-win-right-or-bottom ()
+    (let ((width (frame-width)))
+      (if (> width 180)
+          'right
+        'bottom)))
+  
+  (defun jd:display-buffer-in-side-win-right-or-bot (buffer alist)
+    (let ((dir (jd:side-win-right-or-bottom)))
+      (if (eq dir 'right)
+          (display-buffer-in-side-window
+           buffer
+           `((side . right)
+             (slot . 1)
+             (window-width . jd:fit-window-to-buffer-ratio)
+             (preserve-size . (nil . nil))))
+        (display-buffer-in-side-window
+         buffer
+         `((side . bottom)
+           (slot . 1)
+           (window-height . 0.3)
+           (preserve-size . (nil . nil)))))))
+  
+  (defun jd:display-buffer-in-side-win-selected (buffer alist)
+    (let ((window (display-buffer-in-side-window buffer alist)))
+      (select-window window)))
+  
+  (setq display-buffer-alist
+        `(("\\*\\(.*[hH]elp.*\\|.*Messages.*\\|.*Backtrace.*\\)\\*"
+           jd:display-buffer-in-side-win-right-or-bot)
+          ("\\*\\(.*undo-tree.*\\)\\*"
+           display-buffer-in-side-window
+           (side . right)
+           (slot . 1)
+           (window-width . jd:fit-window-to-buffer-ratio)
+           (preserve-size . (nil . nil)))
+          ("\\*\\(compilation\\|Python Check\\|code-review-gerrit-comment\\)\\*"
+           display-buffer-in-side-window
+           (side . bottom)
+           (slot . -1)
+           (window-height . 0.3)
+           (preserve-size . (nil . nil)))
+          ("\\(.*vterm.*\\|.*term.*\\|.*shell.*\\)"
+           jd:display-buffer-in-side-win-selected
+           (side . bottom)
+           (slot . 0)
+           (window-height . 0.3)
+           (preserve-size . (nil . nil)))))
+#+end_src
 
 *** Popper.el
-    Displays pop-up buffers that can be toggled easily.
-    #+begin_src elisp
-      (use-package popper
-        :bind (("C-`"   . popper-toggle-latest)
-               ("M-`"   . popper-cycle)
-               ("C-M-`" . popper-toggle-type))
-        :init
-        (setq popper-reference-buffers
-              '("\\*Messages\\*"
-                "Output\\*$"
-                help-mode
-                compilation-mode
-                "term"))
-        (setq popper-mode-line
-              '(:eval (propertize " pop " 'face 'mode-line-emphasis)))
-        (popper-mode +1))
-      (setq popper-display-control nil)
-    #+end_src
+Displays pop-up buffers that can be toggled easily.
+#+begin_src elisp
+  (use-package popper
+    :bind (("C-`"   . popper-toggle-latest)
+           ("M-`"   . popper-cycle)
+           ("C-M-`" . popper-toggle-type))
+    :init
+    (setq popper-reference-buffers
+          '("\\*Messages\\*"
+            "Output\\*$"
+            help-mode
+            compilation-mode
+            "term"
+            "\\*Backtrace\\*"))
+    (setq popper-mode-line
+          '(:eval (propertize " pop " 'face 'mode-line-emphasis)))
+    (popper-mode +1))
+  (setq popper-display-control nil)
+#+end_src
 
 ** Miscellaneous Packages
 *** Which-key mode
-    Displays the key bindings after a prefix.
+Displays the key bindings after a prefix.
 
-    #+begin_src elisp
-      (use-package which-key
-        :config
-        (which-key-mode t)
-        (setq which-key-popup-type 'minibuffer))
-
-      (use-package which-key-posframe
-        :disabled
-        :if window-system
-        :config
-        (setq which-key-posframe-poshandler #'posframe-poshandler-frame-bottom-center)
-        (which-key-posframe-mode))
-    #+end_src
+#+begin_src elisp
+  (use-package which-key
+    :config
+    (which-key-mode t)
+    (setq which-key-popup-type 'minibuffer))
+  
+  (use-package which-key-posframe
+    :disabled
+    :if (display-graphic-p)
+    :config
+    (setq which-key-posframe-poshandler #'posframe-poshandler-frame-bottom-center)
+    (which-key-posframe-mode))
+#+end_src
 
 *** Sudo edit
-    Makes it easier to edit files that needs sudo.
+Makes it easier to edit files that needs sudo.
 
-    #+begin_src elisp
-      (use-package sudo-edit
-        :commands (sudo-edit sudo-edit-find-file))
-    #+end_src
+#+begin_src elisp
+  (use-package sudo-edit
+    :commands (sudo-edit sudo-edit-find-file))
+#+end_src
 
 *** Pyim input method.
-    #+begin_src elisp
-      (defvar jd--loaded-pyim-dict nil)
-
-      (defun jd:pyim-basedict-enable ()
-        "Add basedict to pyim."
-        (interactive)
-        (let* ((file (concat (file-name-directory
-                              (straight--repos-dir "pyim-basedict"))
-                             "pyim-basedict.pyim")))
-          (when (file-exists-p file)
-            (if (featurep 'pyim)
-                (pyim-extra-dicts-add-dict
-                 `(:name "Basedict-elpa"
-                         :file ,file
-                         :coding utf-8-unix
-                         :dict-type pinyin-dict
-                         :elpa t))
-              (message "pyim 没有安装，pyim-basedict 启用失败。")))))
-
-      (defun jd:pyim-greatdict-enable ()
-        "Add greatdict to pyim."
-        (interactive)
-        (let* ((file (concat (file-name-directory
-                              (straight--repos-dir "pyim-greatdict"))
-                             "pyim-greatdict.pyim.gz")))
-          (when (file-exists-p file)
-            (if (featurep 'pyim)
-                (pyim-extra-dicts-add-dict
-                 `(:name "Greatdict-elpa"
-                         :file ,file
-                         :coding utf-8-unix
-                         :dict-type pinyin-dict
-                         :elpa t))
-              (message "pyim 没有安装，pyim-greatdict 启用失败。")))))
-
-      (use-package pyim
-        :init
-        (setq default-input-method "pyim")
-        (defun jd:load-pyim-dict ()
-          (interactive)
-          (when (not jd--loaded-pyim-dict)
-            (use-package pyim-basedict)
-            (use-package pyim-greatdict
-              :straight (:type git
-                               :host github
-                               :repo "tumashu/pyim-greatdict"))
-            (jd:pyim-basedict-enable)
-            (jd:pyim-greatdict-enable)
-            (setq jd--loaded-pyim-dict t)))
-        (if window-system
-            (setq pyim-page-tooltip 'posframe)
-          (setq pyim-page-tooltip 'popup))
-        :hook
-        ((input-method-activate . jd:load-pyim-dict)))
-    #+end_src
+#+begin_src elisp
+  (defvar jd--loaded-pyim-dict nil)
+  
+  (defun jd:pyim-basedict-enable ()
+    "Add basedict to pyim."
+    (interactive)
+    (let* ((file (concat (file-name-directory
+                          (straight--repos-dir "pyim-basedict"))
+                         "pyim-basedict.pyim")))
+      (when (file-exists-p file)
+        (if (featurep 'pyim)
+            (pyim-extra-dicts-add-dict
+             `(:name "Basedict-elpa"
+                     :file ,file
+                     :coding utf-8-unix
+                     :dict-type pinyin-dict
+                     :elpa t))
+          (message "pyim 没有安装，pyim-basedict 启用失败。")))))
+  
+  (defun jd:pyim-greatdict-enable ()
+    "Add greatdict to pyim."
+    (interactive)
+    (let* ((file (concat (file-name-directory
+                          (straight--repos-dir "pyim-greatdict"))
+                         "pyim-greatdict.pyim.gz")))
+      (when (file-exists-p file)
+        (if (featurep 'pyim)
+            (pyim-extra-dicts-add-dict
+             `(:name "Greatdict-elpa"
+                     :file ,file
+                     :coding utf-8-unix
+                     :dict-type pinyin-dict
+                     :elpa t))
+          (message "pyim 没有安装，pyim-greatdict 启用失败。")))))
+  
+  (use-package pyim
+    :init
+    (setq default-input-method "pyim")
+    (defun jd:load-pyim-dict ()
+      (interactive)
+      (when (not jd--loaded-pyim-dict)
+        (use-package pyim-basedict)
+        (use-package pyim-greatdict
+          :straight (:type git
+                           :host github
+                           :repo "tumashu/pyim-greatdict"))
+        (jd:pyim-basedict-enable)
+        (jd:pyim-greatdict-enable)
+        (setq jd--loaded-pyim-dict t)))
+    (if (display-graphic-p)
+        (setq pyim-page-tooltip 'posframe)
+      (setq pyim-page-tooltip 'popup))
+    :hook
+    ((input-method-activate . jd:load-pyim-dict)))
+#+end_src
 
 *** Burly bookmark management
-    #+begin_src elisp
-      (use-package burly
-        :bind (("C-c b f" . burly-bookmark-frames)
-               ("C-c b o" . burly-open-bookmark)
-               ("C-c b w" . burly-bookmark-windows))
-        :config
-        (bookmark-maybe-load-default-file))
-    #+end_src
+#+begin_src elisp
+  (use-package burly
+    :bind (("C-c b f" . burly-bookmark-frames)
+           ("C-c b o" . burly-open-bookmark)
+           ("C-c b w" . burly-bookmark-windows))
+    :config
+    (bookmark-maybe-load-default-file))
+#+end_src
 
 *** Auth-sources
-    #+begin_src elisp
-      (setq auth-sources '((:source "~/.authinfo.gpg")))
-    #+end_src
+#+begin_src elisp
+  (setq auth-sources '((:source "~/.authinfo.gpg")))
+#+end_src
 
 *** Restart emacs
-    Makes it much simpler to just restart emacs.
-    #+begin_src elisp
-      (use-package restart-emacs
-        :commands restart-emacs)
-    #+end_src
+Makes it much simpler to just restart emacs.
+#+begin_src elisp
+  (use-package restart-emacs
+    :commands restart-emacs)
+#+end_src
 
 ** Final Touch
 *** Thresholds
-    Set gc thres back to a more normal value.
-    #+begin_src elisp
-      (setq gc-cons-threshold (* 2 1024 1024))
-    #+end_src
+Set gc thres back to a more normal value.
+#+begin_src elisp
+  (setq gc-cons-threshold (* 2 1024 1024))
+#+end_src
 
 *** Startup buffer
-    Do not show the startup buffer.
-    #+begin_src elisp
-      (setq inhibit-startup-message t)
-    #+end_src
+Do not show the startup buffer.
+#+begin_src elisp
+  (setq inhibit-startup-message t)
+#+end_src
 
 *** Happy Emacs!
-    Display a happy message :D
-    #+begin_src elisp
-      (defun jd:happy-message ()
-        "Display a happy message!"
-        (message "Happy Emacs!"))
-      (advice-add 'display-startup-echo-area-message :override #'jd:happy-message)
-    #+end_src
+Display a happy message :D
+#+begin_src elisp
+  (defun jd:happy-message ()
+    "Display a happy message!"
+    (message "Happy Emacs!"))
+  (advice-add 'display-startup-echo-area-message :override #'jd:happy-message)
+#+end_src
 
 ** Provide init.el
 
-   #+begin_src elisp
-     (provide 'init)
-     ;;; init.el ends here
-   #+end_src
+#+begin_src elisp
+  (provide 'init)
+  ;;; init.el ends here
+#+end_src
 
-   #  LocalWords:  Init init Andrey's parens Smartparens flyspell gud gc lsp
-   #  LocalWords:  Magithub treemacs config Swiper swiper thres Clipetty eldoc
-   #  LocalWords:  TOC minibuffer Ripgrep Yasnippet Eglot
+#  LocalWords:  Init init Andrey's parens Smartparens flyspell gud gc lsp
+#  LocalWords:  Magithub treemacs config Swiper swiper thres Clipetty eldoc
+#  LocalWords:  TOC minibuffer Ripgrep Yasnippet Eglot
