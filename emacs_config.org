@@ -280,65 +280,14 @@ Currently using =doom-modeline=. I also liked =telephone-line= too.
       (doom-modeline-set-modeline 'no-host-main 'default))
 
     (add-hook 'doom-modeline-mode-hook 'setup-custom-doom-modeline)
-    ;; (doom-modeline-set-modeline 'no-host-main t)
     (doom-modeline-mode))
-
-  (use-package smart-mode-line
-    :diabled
-    :config
-    (sml/setup))
-
-  (use-package moody
-    :disabled
-    :config
-    (setq x-underline-at-descent-line t)
-    (moody-replace-mode-line-buffer-identification)
-    (moody-replace-vc-mode))
-
-  (use-package telephone-line
-    :diabled
-    :config
-    (telephone-line-mode))
 #+end_src
 
 *** Themes
-I'm constantly changing themes as it turns out.
+I'm constantly changing themes as it turns out. I've been using modus themes a lot recently.
 #+begin_src elisp
   (setq-default left-fringe-width 15)
   (setq-default right-fringe-width 15)
-
-  (use-package doom-themes
-    :disabled
-    :config
-    (load-theme 'doom-one t)
-    (set-face-attribute 'header-line nil :background "#22262b")
-    (set-face-attribute 'tab-bar nil :background "#151823")
-    (set-face-attribute 'tab-bar-tab nil :background "#22262b")
-    (set-face-attribute 'tab-bar-tab-inactive nil :background "#182126")
-    (set-face-attribute 'highlight nil
-                        :background "#2257a0"
-                        :foreground "#dfdfdf"
-                        :distant-foreground "#1b2229"
-                        :weight 'normal)
-    (set-face-attribute 'completions-annotations nil
-                        :slant 'normal)
-    )
-
-  (use-package doom-themes
-    :disabled
-    :config
-    (load-theme 'doom-one-light t))
-
-  (use-package leuven-theme
-    :disabled
-    :config
-    (setq-default left-fringe-width 6)
-    (load-theme 'leuven))
-
-  (use-package kaolin-themes
-    :disabled
-    :config
-    (load-theme 'kaolin-light))
 
   (use-package modus-themes
     :init
@@ -368,11 +317,6 @@ I'm constantly changing themes as it turns out.
     ;; (load-theme 'modus-operandi)
 
     :bind ("<f5>" . modus-themes-toggle))
-
-  (use-package humanoid-themes
-    :disabled
-    :config
-    (load-theme 'humanoid-dark))
 #+end_src
 
 *** Font
@@ -514,44 +458,6 @@ Enable displaying time
 #+end_src
 
 ** Read-Completion
-*** COMMENT Prescient
-Better and simpler ordering of candidates. (Now using orderless)
-#+begin_src elisp
-  (use-package prescient
-    :config
-    (prescient-persist-mode +1))
-#+end_src
-
-*** COMMENT Selectrum
-Use =selectrum= for incremental completion. (Now using vertico)
-#+begin_src elisp
-  (use-package selectrum
-    :custom
-    ((selectrum-count-style 'current/matches)
-     (selectrum-fix-vertical-window-height nil))
-    :bind
-    (("C-c C-r" . selectrum-repeat))
-    :config
-    (selectrum-mode +1))
-#+end_src
-
-Use =posframe= for displaying candidates
-#+begin_src elisp
-  (use-package posframe
-    :config
-    (when (facep 'child-frame-border)
-      (set-face-attribute 'child-frame-border nil :background "gray60"))
-    (setq posframe-inhibit-double-buffering nil))
-#+end_src
-
-Use prescient for ordering.
-#+begin_src elisp
-  (use-package selectrum-prescient
-    :if (featurep 'prescient)
-    :config
-    (selectrum-prescient-mode +1))
-#+end_src
-
 *** Vertico
 #+begin_src elisp
   (use-package vertico
@@ -567,30 +473,6 @@ Use prescient for ordering.
     (setq completion-styles '(orderless)
           completion-category-defaults nil
           completion-category-overrides '((file (styles . (partial-completion))))))
-#+end_src
-
-*** COMMENT Corfu
-#+begin_src elisp
-  (use-package corfu
-    ;; Optionally use TAB for cycling, default is `corfu-complete'.
-    ;; :bind (:map corfu-map
-    ;;        ("TAB" . corfu-next)
-    ;;        ("S-TAB" . corfu-previous))
-  
-    ;; You may want to enable Corfu only for certain modes.
-    ;; :hook ((prog-mode . corfu-mode)
-    ;;        (shell-mode . corfu-mode)
-    ;;        (eshell-mode . corfu-mode))
-  
-    :config
-  
-    ;; Recommended: Enable Corfu globally.
-    ;; This is recommended since dabbrev can be used globally (M-/).
-    (corfu-global-mode)
-  
-    ;; Optionally enable cycling for `corfu-next' and `corfu-previous'.
-    ;; (setq corfu-cycle t)
-    )
 #+end_src
 
 *** Consult
@@ -644,10 +526,6 @@ Useful functionalities for complete-read.
 #+end_src
 
 #+begin_src elisp
-  ;; (setq tab-always-indent 'complete)
-  ;; (use-package cc-mode)
-  ;; (define-key c-mode-map (kbd "<tab>") 'indent-for-tab-command)
-  ;; (define-key c-mode-map (kbd "TAB") 'indent-for-tab-command)
   (setq-default completion-in-region-function 'consult-completion-in-region)
 #+end_src
 
@@ -676,29 +554,6 @@ Enables useful actions to minibuffer completions.
     :demand t
     :hook
     (embark-collect-mode . embark-consult-preview-minor-mode))
-#+end_src
-
-*** Mini frame
-#+begin_src elisp
-  (use-package mini-frame
-    :disabled
-    :if (display-graphic-p)
-    :custom
-    (mini-frame-show-parameters
-     '((top . -1)
-       (width . 0.8)
-       (left . 0.5)
-       (height . 1)
-       (internal-border-width . 1)))
-    :config
-    (setq mini-frame-ignore-functions '(org-read-date))
-    (setq mini-frame-ignore-commands '(nil))
-    (setq mini-frame-internal-border-color "gray60")
-    (setq mini-frame-color-shift-step 0)
-    (setq mini-frame-resize t)
-    (when (facep 'child-frame-border)
-      (set-face-attribute 'child-frame-border nil :background "gray60"))
-    (mini-frame-mode))
 #+end_src
 
 ** Projects
@@ -744,15 +599,6 @@ Use =magit= for version control (of course).
     ((transient-display-buffer-action '(display-buffer-below-selected))
      (transient-mode-line-format '("%e" mode-line-front-space mode-line-buffer-identification))
      (transient-show-popup 0.2)))
-  
-  (use-package transient-posframe
-    :disabled
-    :if (display-graphic-p)
-    :config
-    (setq transient-posframe-poshandler #'posframe-poshandler-frame-bottom-center)
-    (setq transient-posframe-min-height 0)
-    (setq transient-posframe-refresh 0.1)
-    (transient-posframe-mode))
 #+end_src
 Customize magit a bit to my liking.
 #+begin_src elisp
@@ -788,17 +634,6 @@ Subtly show diff info on the margin. Works with both terminal and graphic Emacs.
 #+begin_src elisp
   (use-package git-gutter
     :config
-    ;; (when (featurep 'modus-themes)
-    ;;   (defun jd:fix-git-gutter ()
-    ;;     (interactive)
-    ;;     (set-face-attribute 'git-gutter:added nil :foreground (face-attribute 'modus-themes-fringe-green :background))
-    ;;     (set-face-attribute 'git-gutter:deleted nil :foreground (face-attribute 'modus-themes-fringe-red :background))
-    ;;     (set-face-attribute 'git-gutter:modified nil :foreground (face-attribute 'modus-themes-fringe-yellow :background))
-    ;;     (set-face-attribute 'git-gutter:added nil :background (face-attribute 'fringe :background))
-    ;;     (set-face-attribute 'git-gutter:deleted nil :background (face-attribute 'fringe :background))
-    ;;     (set-face-attribute 'git-gutter:modified nil :background (face-attribute 'fringe :background)))
-    ;;   (add-hook 'modus-themes-after-load-theme-hook 'jd:fix-git-gutter)
-    ;;   (jd:fix-git-gutter))
     (global-git-gutter-mode))
 #+end_src
 
@@ -844,19 +679,6 @@ things super laggy. Define a function to disable it.
       (define-key company-active-map (kbd (format "C-%d" i)) 'company-complete-number)))
   
   (setq tab-always-indent 'complete)
-#+end_src
-
-Use =company-box= if we are not using TTY Emacs.
-#+begin_src elisp
-  (use-package company-box
-    :disabled
-    :if (display-graphic-p)
-    :hook (company-mode . company-box-mode)
-    :config
-    (setq company-box-doc-delay 1.5)
-    (add-to-list 'company-box-frame-parameters '(tab-bar-lines . 0))
-    (add-to-list 'company-box-frame-parameters '(tab-bar-lines-keep-state . t))
-    (setq company-box-doc-frame-parameters '((internal-border-width . 1))))
 #+end_src
 
 Use =company-posframe= if we are not using TTY Emacs.
@@ -916,21 +738,12 @@ are set manually to nil to avoid conflicts with my xref shortcuts.
 #+end_src
 
 *** Undo
-Undo-tree may be a bit unstable. Using alternatives.
+=Undo-tree= may be a bit unstable. Using alternatives.
 #+begin_src elisp
   (use-package undo-fu
     :config
     (global-set-key (kbd "C-/") 'undo-fu-only-undo)
     (global-set-key (kbd "C-?") 'undo-fu-only-redo))
-#+end_src
-
-Helps with a visualized undo tree.
-
-#+begin_src elisp
-  (use-package undo-tree
-    :disabled
-    :config
-    (global-undo-tree-mode))
 #+end_src
 
 *** Smartparens
@@ -1149,16 +962,6 @@ when asked.
 #+end_src
 
 #+begin_src elisp
-  (use-package eldoc-box
-    :disabled
-    :if (display-graphic-p)
-    :hook
-    ((eldoc-mode . eldoc-box-hover-mode))
-    :custom
-    ((eldoc-box-clear-with-C-g t)))
-#+end_src
-
-#+begin_src elisp
   (use-package eldoc-on-hold
     :straight (:type git :host github :repo "JimDBh/eldoc-on-hold")
     :demand t
@@ -1168,8 +971,6 @@ when asked.
     ((eldoc-on-hold-delay-interval 50))
     :config
     (global-eldoc-on-hold-mode 1))
-  
-  ;; (define-key global-map (kbd "C-c h") 'eldoc-on-hold-pick-up)
 #+end_src
 
 *** COMMENT Eglot
@@ -1267,12 +1068,6 @@ Define a function to toggle the skip threshold of compilation buffer:
 
 Support xterm coloring in compilation buffers:
 #+begin_src elisp
-  ;; (use-package xterm-color)
-  ;; (setq compilation-environment '("TERM=xterm-256color"))
-  ;; (defun jd:advice-compilation-filter (f proc string)
-  ;;   (funcall f proc (xterm-color-filter string)))
-  ;; (advice-add 'compilation-filter :around #'jd:advice-compilation-filter)
-  
   (require 'ansi-color)
   (defun jd:colorize-compilation-buffer ()
     (toggle-read-only)
@@ -1317,17 +1112,6 @@ Use gdb many windows. But do not pop-up.
      (gdb-restore-window-configuration-after-quit t)))
 #+end_src
 
-*** COMMENT Treesitter
-#+begin_src elisp
-  (use-package tree-sitter
-    :hook
-    ((c-mode . tree-sitter-mode)
-     (c-mode . tree-sitter-hl-mode)
-     (c++-mode . tree-sitter-mode)
-     (c++-mode . tree-sitter-hl-mode))
-    :config
-    (use-package tree-sitter-langs))
-#+end_src
 *** Others
 Display line number mode for programming. This is in conflict with company
 mode in terminals. Disabled for now.
@@ -1336,10 +1120,7 @@ mode in terminals. Disabled for now.
     :if (display-graphic-p)
     :demand t
     :custom
-    (display-line-numbers-width 4)
-    ;; :hook
-    ;; ((prog-mode . display-line-numbers-mode))
-    )
+    (display-line-numbers-width 4))
 #+end_src
 
 Display the current function name.
@@ -1390,11 +1171,8 @@ In TTY Emacs, I still want to use mouse sometimes.
     (xterm-mouse-mode t)
     (setq mouse-sel-mode t
           xterm-set-window-title nil)
-    ;; (setq mouse-wheel-down-event 'mouse-4)
-    ;; (setq mouse-wheel-up-event 'mouse-5)
     (customize-set-variable 'mouse-wheel-down-event 'mouse-4)
-    (customize-set-variable 'mouse-wheel-up-event 'mouse-5)
-    )
+    (customize-set-variable 'mouse-wheel-up-event 'mouse-5))
 #+end_src
 
 *** Clipetty
@@ -1456,9 +1234,7 @@ Define the function to fit buffer width with constraints.
     "Fit WINDOW to buffer with ratio constraints."
     (let ((min-hgt (ceiling (* (frame-height) jd--fit-min-ratio)))
           (max-hgt (floor (* (frame-height) jd--fit-max-ratio))))
-      (fit-window-to-buffer window max-hgt min-hgt nil nil nil)
-      ;; (unless (display-graphic-p) (window-resize window 2))
-    ))
+      (fit-window-to-buffer window max-hgt min-hgt nil nil nil)))
 #+end_src
 
 Define the variable to determine width with a fixed ratio. (Currently not used).
@@ -1550,13 +1326,6 @@ Displays the key bindings after a prefix.
     :config
     (which-key-mode t)
     (setq which-key-popup-type 'minibuffer))
-  
-  (use-package which-key-posframe
-    :disabled
-    :if (display-graphic-p)
-    :config
-    (setq which-key-posframe-poshandler #'posframe-poshandler-frame-bottom-center)
-    (which-key-posframe-mode))
 #+end_src
 
 *** Sudo edit

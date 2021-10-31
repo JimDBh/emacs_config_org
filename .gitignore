@@ -12,3 +12,6 @@
 /transient/
 /url/
 /.cache/
+/.extension/
+/annotations
+/mypkts/
