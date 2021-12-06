@@ -15,6 +15,7 @@
 - [[#initel][init.el]]
   - [[#header-1][Header]]
   - [[#general-settings][General Settings]]
+  - [[#essentials][Essentials]]
   - [[#appearance][Appearance]]
   - [[#read-completion][Read-Completion]]
   - [[#projects][Projects]]
@@ -177,10 +178,10 @@ would persist still. This is not great. Need to find a new way.
     :demand t
     :config
     (setq ironkey-iron-alist `((,(kbd "M-.") . nil)
-                               (,(kbd "M-,") . nil)
-                               (,(kbd "C-,") . nil)
-                               (,(kbd "C-.") . nil)
-                               (,(kbd "C-x p") . nil)))
+			       (,(kbd "M-,") . nil)
+			       (,(kbd "C-,") . nil)
+			       (,(kbd "C-.") . nil)
+			       (,(kbd "C-x p") . nil)))
     (ironkey-mode t))
 #+end_src
 
@@ -239,6 +240,12 @@ Do not ask me if a process is running.
   (setq-default indent-tabs-mode nil)
 #+end_src
 
+** Essentials
+*** Hydra
+#+begin_src elisp
+  (use-package hydra)
+#+end_src
+
 ** Appearance
 Set up theme, mode-line, tab-bar, etc. I usually set them up before
 other packages, since some packages do not play nice with themes and
@@ -275,11 +282,9 @@ Currently using =doom-modeline=. I also liked =telephone-line= too.
       '(objed-state persp-name battery grip irc mu4e gnus github debug
                     lsp input-method indent-info process vcs checker misc-info))
 
-    (defun setup-custom-doom-modeline ()
-      "Setup the customized modeline for doom modeline."
-      (doom-modeline-set-modeline 'no-host-main 'default))
+    (doom-modeline-def-modeline 'treemacs
+      '(bar " Treemacs"))
 
-    (add-hook 'doom-modeline-mode-hook 'setup-custom-doom-modeline)
     (doom-modeline-mode))
 #+end_src
 
@@ -578,15 +583,20 @@ packages, so need to be careful in config.
     :custom-face
     (treemacs-root-face ((t (:inherit font-lock-string-face :weight bold :height 1.1))))
     :config
+    (if (featurep 'doom-modeline)
+        (setq treemacs-user-mode-line-format
+              '("%e" (:eval (doom-modeline-format--treemacs))))
+      (setq treemacs-user-mode-line-format
+            "treemacs"))
     (when (display-graphic-p) (treemacs-resize-icons 20))
     (use-package treemacs-magit)
-  
+
     (when (display-graphic-p)
       (use-package treemacs-all-the-icons
         :config
         (load "treemacs-all-the-icons.el"))
       (treemacs-load-theme "all-the-icons")))
-  
+
 #+end_src
 
 ** Version Control
@@ -743,7 +753,7 @@ are set manually to nil to avoid conflicts with my xref shortcuts.
   (use-package undo-fu
     :config
     (global-set-key (kbd "C-/") 'undo-fu-only-undo)
-    (global-set-key (kbd "C-?") 'undo-fu-only-redo))
+    (global-set-key (kbd "M-/") 'undo-fu-only-redo))
 #+end_src
 
 *** Smartparens
@@ -900,6 +910,10 @@ different with the default ones.
     (("M-." . jd:xref-find-definitions)
      ("M-," . jd:xref-find-references))
     :config
+    (defun jd:xref-do-not-pulse()
+      t)
+    (unless (display-graphic-p)
+      (advice-add 'xref-pulse-momentarily :override #'jd:xref-do-not-pulse))
     (if (>= emacs-major-version 29)
         (progn
           (define-key global-map (kbd "C-,") 'xref-go-back)
@@ -1014,7 +1028,7 @@ It is much easier to manage than =lsp-mode= and more light-weight.
     (setq lsp-idle-delay 0.1)
     (setq lsp-modeline-diagnostics-enable nil) ;; we have flymake to show errors
     (setq lsp-modeline-code-actions-enable t)
-    (setq lsp-headerline-breadcrumb-enable t)
+    (setq lsp-headerline-breadcrumb-enable nil)
     (setq lsp-headerline-breadcrumb-enable-diagnostics nil)
     (unless (display-graphic-p)
       (setq lsp-headerline-breadcrumb-icons-enable nil))
@@ -1419,7 +1433,7 @@ Makes it much simpler to just restart emacs.
 *** Thresholds
 Set gc thres back to a more normal value.
 #+begin_src elisp
-  (setq gc-cons-threshold (* 500 1024 1024))
+  (setq gc-cons-threshold (* 50 1024 1024))
   (setq garbage-collection-messages t)
   (defvar jd--gc-done nil)
   (run-with-idle-timer 10 t (lambda ()
