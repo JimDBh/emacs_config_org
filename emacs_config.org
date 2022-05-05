@@ -186,6 +186,14 @@ would persist still. This is not great. Need to find a new way.
     (ironkey-mode t))
 #+end_src
 
+
+#+begin_src elisp
+  (use-package exec-path-from-shell
+    :config
+    (when (memq window-system '(mac ns x))
+      (exec-path-from-shell-initialize)))
+#+end_src
+
 *** History saving
 Using recentf-mode and save-hist mode.
 #+begin_src elisp
@@ -903,6 +911,7 @@ it is pushed to Melpa / pdf-tools.
                            (:exclude "lisp/tablist.el" "lisp/tablist-filter.el")))
     :magic ("%PDF" . pdf-view-mode)
     :config
+    (setq pdf-view-use-scaling t)
     (pdf-tools-install :no-query))
 #+end_src
 
@@ -932,6 +941,7 @@ Emacs comes with a default yet quite old version of org. Install the new one.
     (org-startup-indented t)
     (org-agenda-restore-windows-after-quit t)
     (org-cycle-include-plain-lists 'integrate)
+    (org-latex-create-formula-image-program 'dvisvgm)
     :config
     (require 'org-tempo)
     (setq org-format-latex-options (plist-put org-format-latex-options :scale 1.6))
