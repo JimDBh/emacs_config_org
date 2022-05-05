@@ -263,7 +263,9 @@ Ignore case when completing
 #+end_src
 *** Tramp
 #+begin_src elisp
-  (use-package tramp)
+  (use-package tramp
+    :custom
+    (tramp-histfile-override nil))
 #+end_src
 
 ** Appearance
@@ -392,6 +394,8 @@ I'm constantly changing themes as it turns out. I've been using Modus themes a l
 The Fira font works very well both in terminal and in graphic Emacs.
 #+begin_src elisp
   (add-to-list 'default-frame-alist '(font . "Fira Code-11"))
+  (set-face-attribute 'variable-pitch nil :family "Fira Code")
+  (set-face-attribute 'fixed-pitch nil :family "Fira Code")
 #+end_src
 
 *** Tabs
@@ -706,6 +710,7 @@ Customize Magit a bit to my liking.
 
 *** Git gutter
 Subtly show diff info on the margin. Works with both terminal and graphic Emacs.
+Not enabled globally as for tramp it works very slowly.
 #+begin_src elisp
   (use-package git-gutter
     :commands
