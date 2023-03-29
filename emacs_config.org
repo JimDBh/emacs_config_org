@@ -110,7 +110,6 @@ Use use-package for much easier package configuration with auto-loading.
 Do not load package.el since we are not using it.
 #+begin_src elisp
   (setq package-enable-at-startup nil)
-  (setq byte-compile-warnings '(cl-functions))
 #+end_src
 
 ** Early tweaks on appearance
@@ -273,6 +272,11 @@ Using recentf-mode and save-hist mode.
 #+end_src
 
 *** Other
+Don't show too much warnings
+#+begin_src elisp
+  (setq warning-minimum-level :emergency)
+#+end_src
+
 Set recenter positions so we can see a portion of the previous/next page.
 #+begin_src elisp
   (setq recenter-positions '(middle 0.15 0.85))
@@ -339,8 +343,7 @@ I usually just use Git
   (setq vc-handled-backends '(Git))
   (use-package vc-defer
     :config
-    (setq vc-defer-backends '(Git))
-    (vc-defer-mode t))
+    (setq vc-defer-backends '(Git)))
 #+end_src
 
 ** Essentials
@@ -365,7 +368,7 @@ Currently using =doom-modeline=. I also liked =telephone-line= too.
 #+begin_src elisp
   (use-package doom-modeline
     :custom
-    (doom-modeline-height 34)
+    (doom-modeline-height 46)
     (doom-modeline-buffer-file-name-style 'truncate-with-project)
     (doom-modeline-buffer-encoding nil)
     :config
@@ -387,24 +390,6 @@ Currently using =doom-modeline=. I also liked =telephone-line= too.
                                            '(:inherit mode-line-emphasis)
                                          'mode-line-inactive)))))
 
-    (defsubst doom-modeline--invisible-bar ()
-      "The default bar regulates the height of the mode-line in GUI."
-      (unless (and doom-modeline--bar-active doom-modeline--bar-inactive)
-        (let ((width doom-modeline-bar-width)
-              (height (max doom-modeline-height (doom-modeline--font-height))))
-          (setq doom-modeline--bar-active
-                (doom-modeline--create-bar-image 'mode-line-active width height)
-                doom-modeline--bar-inactive
-                (doom-modeline--create-bar-image
-                 'mode-line-inactive width height))))
-      (if (doom-modeline--active)
-          doom-modeline--bar-active
-        doom-modeline--bar-inactive))
-
-    (doom-modeline-def-segment invisible-bar
-      "The bar regulates the height of the `doom-modeline' in GUI."
-      (doom-modeline--invisible-bar))
-
     (doom-modeline-def-modeline 'main
       '(bar matches modals popper-doom-modeline workspace-name window-number buffer-info
                 remote-host-no-host buffer-position word-count parrot selection-info)
@@ -420,7 +405,7 @@ Currently using =doom-modeline=. I also liked =telephone-line= too.
     (doom-modeline-def-modeline 'treemacs
       '(bar treemacs-doom-seg))
 
-    ;; Frame-focus detection sometimes mess up. I probably don't need that
+    ;; Frame-focus detection sometimes messes up. I probably don't need that
     ;; anyways.  Note that this seems to make multi-frame switching affect
     ;; doom-modeline-current-window, may need to reset it when focusing/unfocusing
     (advice-add #'doom-modeline-focus :override 'ignore)
@@ -432,36 +417,41 @@ Currently using =doom-modeline=. I also liked =telephone-line= too.
     (doom-modeline-mode))
 #+end_src
 
-A trimmed-down version of doom-modline. Seems promising. Need to check later.
-#+begin_src elisp
-  (use-package mood-line
-    :disabled
-    :config
-    (mood-line-mode))
-#+end_src
-
 *** Themes
 I'm constantly changing themes as it turns out. I've been using Modus themes a lot recently.
 #+begin_src elisp
-  (setq-default left-fringe-width 15)
-  (setq-default right-fringe-width 15)
-
   (use-package modus-themes
+    :demand t
     :init
     ;; Add all your customizations prior to loading the themes
-    (setq modus-themes-scale-headings t
-          modus-themes-prompts '(background)
+    (setq ;; modus-themes-prompts '(bold)
           modus-themes-slanted-constructs nil
-          modus-themes-paren-match '(bold)
-          modus-themes-subtle-line-numbers t
-          modus-themes-mode-line '(accented))
-
-    ;; Load the theme files before enabling a theme (else you get an error).
-    (modus-themes-load-themes)
-
+          modus-themes-org-blocks 'gray-background
+          modus-themes-common-palette-overrides
+          '((fringe unspecified)
+            ;; (bg-mode-line-inactive "#373737")
+            ;; (fg-line-number-active fg-dim)
+            ;; (fg-line-number-inactive bg-active)
+            (bg-line-number-active unspecified)
+            (bg-line-number-inactive unspecified)
+            ;; code syntax:
+            ;; (builtin magenta)
+            ;; (comment yellow-faint)
+            (constant magenta-cooler)
+            ;; (docstring green-faint)
+            ;; (docmarkup magenta-faint)
+            ;; (fnname magenta-warmer)
+            ;; (keyword cyan)
+            ;; (preprocessor cyan-cooler)
+            (string green-cooler)
+            ;; (type magenta-cooler)
+            ;; (variable blue-warmer)
+            ;; (rx-construct magenta-warmer)
+            ;; (rx-backslash blue-cooler)
+            ))
     :config
     ;; Load the theme of your choice:
-    (modus-themes-load-vivendi) ;; OR (modus-themes-load-operandi)
+    (modus-themes-load-theme 'modus-vivendi) ;; OR (modus-themes-load-theme 'modus-operandi)
 
     (defun jd:reload-all-modeline ()
       (interactive)
@@ -480,7 +470,7 @@ I'm constantly changing themes as it turns out. I've been using Modus themes a l
 *** Font
 The Fira font works very well both in terminal and in graphic Emacs.
 #+begin_src elisp
-  (add-to-list 'default-frame-alist '(font . "Fira Code-10.5"))
+  (add-to-list 'default-frame-alist '(font . "Fira Code-9.5"))
   (set-face-attribute 'variable-pitch nil :family "Fira Code")
   (set-face-attribute 'fixed-pitch nil :family "Fira Code")
 #+end_src
@@ -493,42 +483,16 @@ find myself not using them very often. Using =C-x t= as the prefix:
 #+begin_src elisp
   (use-package tab-bar
     :bind (("C-x t b" . tab-bar-switch-to-tab))
-    :init
-    (defun jd:tab-bar-tab-name-format (tab i)
-      "My own tab bar name format. With spaces on the side."
-      (let* ((current-p (eq (car tab) 'current-tab))
-             (str (propertize
-                   (concat
-                    " "
-                    (if tab-bar-tab-hints (format "%d " i) "")
-                    (alist-get 'name tab)
-                    " "
-                    (or (and tab-bar-close-button-show
-                             (not (eq tab-bar-close-button-show
-                                      (if current-p 'non-selected 'selected)))
-                             tab-bar-close-button)
-                        ""))                        
-                   'face (funcall tab-bar-tab-face-function tab)
-                   'line-height 1.5)))
-        str))
     :custom
     ((tab-bar-format '(tab-bar-format-history
                        tab-bar-format-tabs
                        tab-bar-separator
                        tab-bar-format-add-tab))
-     (tab-bar-close-button-show nil)
-     (tab-bar-new-button-show nil))
+     (tab-bar-close-button-show t)
+     (tab-bar-new-button-show t)
+     (tab-bar-show nil))
     :config
-    (let ((active-color (face-attribute 'tab-bar-tab :background))
-          (inactive-color (face-attribute 'tab-bar-tab-inactive :background)))
-      (set-face-attribute 'tab-bar-tab nil
-                          :box `(:line-width 5 :color ,active-color))
-      (set-face-attribute 'tab-bar-tab-inactive nil
-                          :box `(:line-width 5 :color ,inactive-color)))
-    (setq tab-bar-tab-name-format-function #'jd:tab-bar-tab-name-format)
-    (setq tab-bar-show -1)
     (tab-bar-mode 1))
-  
 #+end_src
 
 #+begin_src elisp
@@ -538,55 +502,8 @@ find myself not using them very often. Using =C-x t= as the prefix:
 #+end_src
 **** tab-line
 #+begin_src elisp
-  (defun jd:tab-line-group-proj-root (buffer)
-    (cond
-     ((and (string-match "term" (buffer-name buffer))
-           (string-match "*" (buffer-name buffer)))
-      " terms ")
-     ((string-match "magit" (buffer-name buffer))
-      " magit ")
-     ((string-match "*" (buffer-name buffer))
-      " others ")
-     (t
-      " default ")))
-
-  (defun jd:tab-line-sort-alpha (a b)
-    (string< (buffer-name a) (buffer-name b)))
-
   (use-package tab-line
-    :init
-    (defun jd:tab-line-name-format (buffer &optional _buffers)
-      "My own tab bar name format. With spaces on the side."
-      (propertize
-       (format " %s " (buffer-name buffer))
-       'line-height 1.5))
     :config
-    (setq tab-line-tabs-buffer-group-function #'jd:tab-line-group-proj-root)
-    (setq tab-line-tabs-buffer-group-sort-function #'jd:tab-line-sort-alpha)
-    (setq tab-line-tabs-function #'tab-line-tabs-buffer-groups)
-    (setq tab-line-tab-name-function #'jd:tab-line-name-format)
-
-    (setq tab-line-left-button
-          (propertize " < "
-                      'keymap tab-line-left-map
-                      'mouse-face 'tab-line-highlight
-                      'help-echo "Click to scroll left"))
-
-    (setq tab-line-right-button
-          (propertize " > "
-                      'keymap tab-line-right-map
-                      'mouse-face 'tab-line-highlight
-                      'help-echo "Click to scroll right"))
-
-    (setq tab-line-close-button
-          (propertize "x "
-                      'keymap tab-line-tab-close-map
-                      'mouse-face 'tab-line-close-highlight
-                      'help-echo "Click to close tab"))
-
-    (set-face-attribute 'tab-line nil :height 1.0)
-    (setq tab-line-close-button-show nil)
-
     (global-tab-line-mode -1))
 #+end_src
 
@@ -632,7 +549,7 @@ Useful functionalities for complete-read.
            ("C-c o" . consult-outline)
            ("C-c i" . consult-imenu)
            ;; C-x bindings (ctl-x-map)
-           ("C-x M-:" . consult-complex-command)
+           ;; ("C-x M-:" . consult-complex-command)
            ("C-x b" . consult-buffer)
            ("C-x 4 b" . consult-buffer-other-window)
            ("C-x 5 b" . consult-buffer-other-frame)
@@ -652,14 +569,17 @@ Useful functionalities for complete-read.
            ("M-s k" . consult-keep-lines)
            ("M-s u" . consult-focus-lines)
            ;; Other bindings
-           ("M-y" . consult-yank-pop)
-           ("<help> a" . consult-apropos))
+           ("M-y" . consult-yank-pop))
     :init
     (setq register-preview-delay 0
           register-preview-function #'consult-register-preview)
     :config
-    (setq consult-preview-key (kbd "C-l"))
+    (setq consult-preview-key "C-l")
     (setq consult-narrow-key "<")
+    (add-to-list 'consult-buffer-filter "\\`\\*EGLOT.*\\*\\'")
+    (add-to-list 'consult-buffer-filter "\\`\\*Async-native-compile-log\\*\\'")
+    (add-to-list 'consult-buffer-filter "\\`\\*Messages\\*\\'")
+    (add-to-list 'consult-buffer-filter "\\`\\*Warnings\\*\\'")
     (defun jd:current-project-root ()
       (let ((p (project-current)))
         (if p
@@ -701,14 +621,14 @@ Add annotations to minibuffer completions.
 *** embark
 Enables useful actions to minibuffer completions.
 #+begin_src elisp
+  (use-package embark-consult
+    :after (consult))
+  
   (use-package embark
     :custom
     (embark-indicators '(embark-minimal-indicator))
     :bind
     ("C-o" . embark-act))
-  
-  (use-package embark-consult
-    :after (embark consult))
 #+end_src
 
 *** Orderless
@@ -835,55 +755,6 @@ Useful snippets. Also helps with company mode completion.
     (yas-global-mode t))
 #+end_src
 
-*** COMMENT Company
-Commenting out to try corfu and such
-
-Complete anything!
-
-In gud-mode, we don't want company to auto show up, since it makes
-things super laggy. Define a function to disable it.
-#+begin_src elisp
-  (defun jd:disable-company-idle-delay ()
-    (setq-local company-idle-delay nil))
-#+end_src
-
-#+begin_src elisp
-  (use-package company
-    :demand
-    :custom
-    ((company-idle-delay 0.1)
-     (company-show-numbers t)
-     (company-minimum-prefix-length 2)
-     (company-tooltip-align-annotations t)
-     (company-tooltip-maximum-width 120))
-    :bind
-    (("C-M-i" . company-complete)
-     ("C-<tab>" . company-complete)
-     :map company-active-map
-     ("C-n" . company-select-next)
-     ("C-p" . company-select-previous))
-    :hook
-    ((after-init . global-company-mode)
-     (gud-mode . jd:disable-company-idle-delay))
-    :config
-    (dotimes (i 10)
-      (define-key company-active-map (kbd (format "C-%d" i)) 'company-complete-number)))
-  
-  (setq tab-always-indent 'complete)
-#+end_src
-
-Use =company-posframe= if we are not using TTY Emacs.
-#+begin_src elisp
-  (use-package company-posframe
-    :after company
-    :custom
-    ((company-posframe-show-indicator nil)
-     (company-posframe-quickhelp-delay 20))
-    :config
-    (advice-add 'jd:enable-graphic :after (lambda () (add-hook 'company-mode-hook 'company-posframe-mode)))
-    (advice-add 'jd:disable-graphic :after (lambda () (remove-hook 'company-mode-hook 'company-posframe-mode))))
-#+end_src
-
 *** Corfu
 Trying out corfu to see how it works.
 #+begin_src elisp
@@ -891,12 +762,13 @@ Trying out corfu to see how it works.
     :demand t
     :custom
     ((corfu-cycle t)
-     (corfu-auto nil)
-     (corfu-auto-delay 0.2)
+     (corfu-auto t)
+     (corfu-auto-delay 0.5)
      (corfu-auto-prefix 2)
      (corfu-preview-current nil)
      (corfu-scroll-margin 4)
      (corfu-bar-width 1)
+     (corfu-min-width 50)
      (corfu-max-width 120))
     :bind
     (("C-<tab>" . completion-at-point))
@@ -1003,60 +875,28 @@ Terminal corfu popup
 #+end_src
 
 *** Spell Check
-Use flyspell for spell check. =wucuo.el= helps improving things for
-on-the-fly checking, but can be annoying at times for programming, as
-we do not always use (combinations of) full words.
 
+**** Jinx
+Trying out jinx.
 #+begin_src elisp
-  (use-package wucuo
-    :commands
-    (wucuo-mode)
-    :init
-    (setq wucuo-font-faces-to-check
-          '(
-            ;; font-lock-string-face
-            font-lock-doc-face
-            font-lock-comment-face
-            ;; font-lock-function-name-face
-            ;; font-lock-variable-name-face
-            ;; js2-function-call
-            ;; js2-function-param
-            js2-object-property
-            js2-object-property-access
-            ;; css-selector
-            css-property
-            rjsx-text
-            ;; rjsx-tag
-            ;; rjsx-attr
-            ))
-    :config
-    (cond
-     ((executable-find "aspell")
-      ;; you may also need `ispell-extra-args'
-      (setq ispell-program-name "aspell"))
-     ((executable-find "hunspell")
-      (setq ispell-program-name "hunspell"))))
-#+end_src
-
-Use =flyspell-correct.el= for easy batch correction. =C-.= and =C-,=
-are set manually to nil to avoid conflicts with my xref shortcuts.
-
-#+begin_src elisp
-  (use-package flyspell-correct
-    :bind
-    (:map flyspell-mode-map
-          ("C-;" . flyspell-correct-wrapper)
-          ("C-," . nil)
-          ("C-." . nil)))
+  (use-package jinx)
 #+end_src
 
 *** Undo
 Going back to =Undo-tree=.
 #+begin_src elisp
   (use-package undo-tree
+    :init
+    ;; Define a version that does not display any message when saving
+    (defun jd:undo-tree-save-history (orig-func &rest args)
+      (let ((message-log-max nil)
+            (inhibit-message t))
+        (apply orig-func args)))
     :custom
     (undo-tree-incompatible-major-modes '(term-mode special-mode))
+    (undo-tree-history-directory-alist '(("." . (concat (getenv "HOME") "/undotree-hist/"))))
     :config
+    (advice-add 'undo-tree-save-history :around 'jd:undo-tree-save-history)
     (global-undo-tree-mode))
 #+end_src
 
@@ -1072,6 +912,20 @@ braces (automatically add a newline there) and c comment pairs.
       (sp-local-pair "{" nil
                      :post-handlers '(("||\n[i]" "RET")))
       (sp-local-pair "/*" "*/"))
+
+    (sp-with-modes sp--lisp-modes
+      ;; disable ', it's the quote character!
+      (sp-local-pair "'" nil :actions nil)
+      ;; also only use the pseudo-quote inside strings where it serve as
+      ;; hyperlink.
+      (sp-local-pair "`" "'" :when '(sp-in-string-p sp-in-comment-p))
+      (sp-local-pair "`" nil
+                     :skip-match (lambda (ms mb me)
+                                   (cond
+                                    ((equal ms "'")
+                                     (or (sp--org-skip-markup ms mb me)
+                                         (not (sp-point-in-string-or-comment))))
+                                    (t (not (sp-point-in-string-or-comment)))))))
 
     (show-paren-mode -1)
     (smartparens-global-mode t)
@@ -1126,6 +980,8 @@ Use =auctex=.
 #+end_src
 
 ** PDF
+
+*** COMMENT PDF with image roll
 Dalanicolai has contributed a continuous pdf tools fork, with a package
 image-roll.  Using the code from github right now. May need to update later if
 it is pushed to Melpa / pdf-tools.
@@ -1146,6 +1002,16 @@ it is pushed to Melpa / pdf-tools.
     (pdf-tools-install :no-query))
 #+end_src
 
+*** Normal pdf tools
+#+begin_src elisp
+  (use-package pdf-tools
+    :magic ("%PDF" . pdf-view-mode)
+    :config
+    (setq pdf-view-use-scaling t)
+    (pdf-tools-install :no-query))
+#+end_src
+
+*** Other pdf related
 Use org-pdftools for links etc.
 #+begin_src elisp
   (use-package org-pdftools
@@ -1199,14 +1065,7 @@ Auto insert a TOC when saving. Very helpful for GitHub org files.
 #+end_src
 
 *** Org modern
-Beautify the bullets. Now using org modern instead of superstar.
-#+begin_src elisp
-  (use-package org-superstar
-    :after org
-    :disabled
-    :hook
-    ((org-mode . (lambda ()(org-superstar-mode 1)))))
-#+end_src
+Beautify the bullets.
 
 #+begin_src elisp
   (use-package org-modern
@@ -1449,22 +1308,16 @@ when asked.
 
 #+begin_src elisp
   (use-package eldoc
+    :straight (:type built-in)
     :custom
-    ((eldoc-idle-delay 0.1)
-     (eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly))
-    :demand t)
-#+end_src
-
-#+begin_src elisp
-  (use-package eldoc-on-hold
-    :straight (:type git :host github :repo "JimDBh/eldoc-on-hold")
-    :demand t
+    ((eldoc-idle-delay 0.2)
+     (eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
+     ;; (eldoc-echo-area-use-multiline-p t)
+     ;; (eldoc-echo-area-display-truncation-message nil)
+     )
     :bind
-    (("C-c h" . eldoc-on-hold-pick-up))
-    :custom
-    ((eldoc-on-hold-delay-interval 50))
-    :config
-    (global-eldoc-on-hold-mode 1))
+    ("C-c h" . eldoc)
+    :demand t)
 #+end_src
 
 *** Eglot
@@ -1472,15 +1325,28 @@ when asked.
 It is much easier to manage than =lsp-mode= and more light-weight.
 #+begin_src elisp
   (use-package eglot
+    :straight (:type built-in)
     :custom
-    ((eglot-send-changes-idle-time 0.8)
-     (eglot-flymake-immediate-report nil))
+    ((eglot-send-changes-idle-time 0.5)
+     (eglot-sync-connect t))
     :hook
     ((c-mode . eglot-ensure)
-     (c++-mode . eglot-ensure))
+     (c++-mode . eglot-ensure)
+     (eglot-managed-mode . (lambda ()
+                             (when (not jd:code-reading--enabled)
+                               (eglot-inlay-hints-mode -1)))))
     :config
-    (add-to-list 'eglot-server-programs '(c-mode . ("clangd-13" "--limit-results=200" "--header-insertion=never")))
-    (add-to-list 'eglot-server-programs '(c++-mode . ("clangd-13" "--limit-results=200" "--header-insertion=never")))
+    (add-to-list 'eglot-server-programs
+                 '((c-mode c++-mode c-ts-mode c++-ts-mode) .
+                   ("clangd-15"
+                    "--limit-results=200"
+                    "--header-insertion=never"
+                    "--header-insertion-decorators=0"
+                    "--clang-tidy"
+                    "--completion-style=detailed"
+                    "--enable-config"
+                    "-j=8"
+                    "--pch-storage=memory")))
     (setq eglot-stay-out-of '(eldoc-documentation-strategy)))
 #+end_src
 
@@ -1499,7 +1365,7 @@ It is much easier to manage than =lsp-mode= and more light-weight.
     ;; really make sure to use plists...
     (defvar lsp-use-plists t)
     (setq lsp-use-plists t)
-    (setq lsp-clients-clangd-executable "clangd-13")
+    (setq lsp-clients-clangd-executable "clangd-15")
     (setq lsp-keymap-prefix "C-c l")
     :hook
     ((c-mode . lsp)
@@ -1519,7 +1385,7 @@ It is much easier to manage than =lsp-mode= and more light-weight.
     (advice-add 'jd:enable-graphic :after
                 (lambda ()
                   (setq lsp-headerline-breadcrumb-icons-enable t)))
-    
+
     (setq lsp-clients-clangd-args '("--header-insertion-decorators=0"
                                     "--limit-results=200"))
     (setq lsp--highlight-kind-face '((1 . bold)
@@ -1541,6 +1407,9 @@ It is much easier to manage than =lsp-mode= and more light-weight.
       (setq lsp-ui-doc-show-with-cursor nil)
       (setq lsp-ui-doc-show-with-mouse nil)
       (setq lsp-ui-doc-enable nil))
+
+    ;; (use-package lsp-pyright)
+    (setq lsp-pylsp-plugins-autopep8-enabled t)
 
     (use-package lsp-treemacs))
 #+end_src
@@ -1586,9 +1455,9 @@ Support xterm coloring in compilation buffers:
 #+begin_src elisp
   (require 'ansi-color)
   (defun jd:colorize-compilation-buffer ()
-    (toggle-read-only)
+    (read-only-mode -1)
     (ansi-color-apply-on-region compilation-filter-start (point))
-    (toggle-read-only))
+    (read-only-mode t))
   (add-hook 'compilation-filter-hook 'jd:colorize-compilation-buffer)
 #+end_src
 
@@ -1603,7 +1472,7 @@ This is not needed with =lsp-mode= or =eglot=.
   (use-package clang-format
     :custom
     ((clang-format-style "file")
-     (clang-format-executable "clang-format-7")))
+     (clang-format-executable "clang-format")))
 #+end_src
 
 **** Others
@@ -1628,6 +1497,49 @@ Use GDB many windows. But do not pop-up.
     ((gdb-display-io-nopopup t)
      (gdb-many-windows t)
      (gdb-restore-window-configuration-after-quit t)))
+#+end_src
+
+*** Reading Mode
+A simple function that toggles a bunch of infomation shown in the code.
+#+begin_src elisp
+  (defvar jd:code-reading--enabled nil)
+
+  (defun jd:code-reading--enable-global ()
+    (when eldoc--doc-buffer
+      (display-buffer eldoc--doc-buffer)))
+
+  (defun jd:code-reading--enable-local ()
+    (when eglot--managed-mode
+      (eglot-inlay-hints-mode t)))
+
+  (defun jd:code-reading--disable-global ()
+    (when (get-buffer-window eldoc--doc-buffer)
+      (delete-window (get-buffer-window eldoc--doc-buffer))))
+
+  (defun jd:code-reading--disable-local ()
+    (when eglot--managed-mode
+      (eglot-inlay-hints-mode -1)))
+
+  (defun jd:code-reading-toggle ()
+    (interactive)
+    (if jd:code-reading--enabled
+        (progn
+          (setq jd:code-reading--enabled nil)
+          (jd:code-reading--disable-global)
+          (remove-hook 'prog-mode-hook 'jd:code-reading--enable-local)
+          (let ((buffers (buffer-list)))
+            (while buffers
+              (with-current-buffer (car buffers) (jd:code-reading--disable-local))
+              (setq buffers (cdr buffers)))))
+      (setq jd:code-reading--enabled t)
+      (jd:code-reading--enable-global)
+      (add-hook 'prog-mode-hook 'jd:code-reading--enable-local)
+      (let ((buffers (buffer-list)))
+        (while buffers
+          (with-current-buffer (car buffers) (jd:code-reading--enable-local))
+          (setq buffers (cdr buffers))))))
+
+  (define-key global-map (kbd "C-c r") 'jd:code-reading-toggle)
 #+end_src
 
 *** Others
@@ -1675,17 +1587,6 @@ as a buffer.
     :commands vterm
     :if module-file-suffix
     :init
-    (defun jd:set-test-ref-exp-vterms()
-      (interactive)
-      (if (featurep 'popper)
-          (progn
-            (popper-lower-to-popup (vterm "*exp term*"))
-            (popper-lower-to-popup (vterm "*ref term*"))
-            (popper-lower-to-popup (vterm "*test term*")))
-        (vterm "*exp term*")
-        (vterm "*ref term*")
-        (vterm "*test term*")))
-
     (defun jd:vterm-yank-pop-action (orig-fun &rest args)
       (interactive "p")
       (if (equal major-mode 'vterm-mode)
@@ -1695,40 +1596,19 @@ as a buffer.
                        (lambda (str) (vterm-send-string str t))))
               (apply orig-fun args)))
         (apply orig-fun args)))
-
-    (defun jd:vterm-send-M-b ()
-      (interactive)
-      (vterm-send"M-b"))
-    (defun jd:vterm-send-M-f ()
-      (interactive)
-      (vterm-send"M-f"))
-    (defun jd:vterm-send-M-d ()
-      (interactive)
-      (vterm-send"M-d"))
-
     :custom
     ((vterm-kill-buffer-on-exit t)
      (vterm-timer-delay 0.01)
      (vterm-min-window-width 100)
      (vterm-max-scrollback 10000)
      (vterm-enable-manipulate-selection-data-by-osc52 t)
+     (vterm-keymap-exceptions '("M-`" "C-c" "C-x" "C-u" "C-g" "C-h" "C-l" "M-x" "M-o" "C-y" "M-y"))
      (vterm-shell "zsh"))
     :config
-    (advice-add 'consult-yank-pop :around #'jd:vterm-yank-pop-action)
-    (define-key vterm-mode-map (kbd "M-b") 'jd:vterm-send-M-b)
-    (define-key vterm-mode-map (kbd "M-f") 'jd:vterm-send-M-f)
-    (define-key vterm-mode-map (kbd "M-d") 'jd:vterm-send-M-d))
+    (advice-add 'consult-yank-pop :around #'jd:vterm-yank-pop-action))
 #+end_src
 
 ** TTY Emacs Specific
-*** Keys
-For company mode, we need =C-0= to =C-9=, but their codes are not
-defined in the key-map.
-#+begin_src elisp
-  (advice-add 'jd:enable-terminal :after
-              (lambda ()
-                "keys."))
-#+end_src
 *** Mouse
 In TTY Emacs, I still want to use mouse sometimes.
 #+begin_src elisp
@@ -1747,8 +1627,9 @@ In TTY Emacs, I still want to use mouse sometimes.
 remote client.
 #+begin_src elisp
   (use-package clipetty
-    :bind
-    ("M-w" . clipetty-kill-ring-save))
+    :demand t
+    :config
+    (global-clipetty-mode))
 #+end_src
 
 *** Vertical splitter
@@ -1783,6 +1664,11 @@ Define the rules for side windows.
 Allow fit window to buffer horizontally. Also resize pixel-wise.
 #+begin_src elisp
   (setq window-resize-pixelwise t)
+#+end_src
+
+Let vertical side windows take full height.
+#+begin_src elisp
+  (setq window-sides-vertical t)
 #+end_src
 
 Define the function to fit buffer width with constraints.
@@ -1829,12 +1715,11 @@ Set =display-buffer-alist= to display certain buffers in side windows.
            (side . bottom)
            (slot . 0)
            (preserve-size . (nil . nil)))
-          ("\\*xref\\*"
-           jd:display-buffer-in-side-win-selected
-           (side . bottom)
+          (".*\\*.*eldoc.*\\*"
+           display-buffer-in-side-window
+           (side . top)
            (slot . 0)
-           ;; (window-height . jd:fit-window-to-buffer-ratio-ver)
-           (window-height . 0.3)
+           (window-height . 0.25)
            (preserve-size . (nil . nil)))))
 #+end_src
 
@@ -1847,7 +1732,7 @@ Displays pop-up buffers that can be toggled easily.
            ("C-M-`" . popper-toggle-type))
     :init
     (setq popper-reference-buffers
-          '(vterm-mode
+          '("term\\*"
             "shell"))
     (setq popper-mode-line "") ;; popper modeline is defined in doom modeline now
     (popper-mode +1)
@@ -1917,18 +1802,14 @@ Makes it easier to edit files that needs sudo.
     (defun jd:load-pyim-dict ()
       (interactive)
       (when (not jd--loaded-pyim-dict)
+        (message "Loading pyim dictionaries...")
         (use-package pyim-basedict)
         (use-package pyim-greatdict
           :straight (:type git
                            :host github
                            :repo "tumashu/pyim-greatdict"))
-        (jd:pyim-basedict-enable)
-        (jd:pyim-greatdict-enable)
-        (setq jd--loaded-pyim-dict t)))
-
-    :hook
-    ((input-method-activate . jd:load-pyim-dict))
-    :config
+        (setq jd--loaded-pyim-dict t)
+        (message "Done.")))
     (advice-add 'jd:enable-graphic :after
                 (lambda ()
                   (setq pyim-page-tooltip 'posframe)))
@@ -1936,7 +1817,13 @@ Makes it easier to edit files that needs sudo.
                 (lambda ()
                   "pyim-pop"
                   (use-package popup)
-                  (setq pyim-page-tooltip 'popup))))
+                  (setq pyim-page-tooltip 'popon)))
+    :commands
+    (input-method-activate)
+    :config
+    (jd:load-pyim-dict)
+    (jd:pyim-basedict-enable)
+    (jd:pyim-greatdict-enable))
 #+end_src
 
 *** Burly bookmark management
@@ -1946,7 +1833,8 @@ Makes it easier to edit files that needs sudo.
            ("C-c b o" . burly-open-bookmark)
            ("C-c b w" . burly-bookmark-windows))
     :config
-    (bookmark-maybe-load-default-file))
+    (bookmark-maybe-load-default-file)
+    (burly-tabs-mode t))
 #+end_src
 
 *** Auth-sources
@@ -1986,6 +1874,26 @@ Do not show the startup buffer.
 *** Set up server
 #+begin_src elisp
   (jd:init-display-settings)
+#+end_src
+
+*** Treesit hacks
+Now we have treesitter in emacs, we will use these modes when needed. But also add the hooks too.
+#+begin_src elisp
+  (use-package treesit-auto
+    :disabled
+    :straight (:type git
+                     :host github
+                     :repo "renzmann/treesit-auto")
+    :demand t
+    :config
+    (add-to-list 'treesit-auto-fallback-alist '(bash-ts-mode . sh-mode))
+    (treesit-auto-apply-remap)
+    (advice-add 'treesit-install-language-grammar
+                :after (lambda (&rest _r) (treesit-auto-apply-remap))))
+
+  (setq c-ts-mode-hook c-mode-hook)
+  (setq c++-ts-mode-hook c++-mode-hook)
+  (setq python-ts-mode-hook python-mode-hook)
 #+end_src
 
 *** Happy Emacs!
